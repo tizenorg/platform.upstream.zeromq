@@ -41,7 +41,7 @@ This package contains the ZeroMQ shared library.
 %package devel
 Summary:  Development files and static library for the ZeroMQ library
 Group:    Development/Libraries
-Requires: %{name} = %{version}-%{release}
+Requires: libzmq = %{version}-%{release}
 Requires: pkgconfig
 
 %description devel
