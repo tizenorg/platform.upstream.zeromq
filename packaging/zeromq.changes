@@ -1,3 +1,6 @@
+* Tue Mar 19 2013 Anas Nashif <anas.nashif@intel.com> submit/trunk/20130319.212352@8717c11
+- Fixed Requires on libzmq
+
 * Tue Mar 19 2013 Anas Nashif <anas.nashif@intel.com> submit/trunk/20130319.211826@6e4eadc
 - add manifest file
 
