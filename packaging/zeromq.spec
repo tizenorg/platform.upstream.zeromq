@@ -73,13 +73,14 @@ cp %{SOURCE1001} .
 
 
 %files -n libzmq
-%manifest zeromq.manifest
+%manifest %{name}.manifest
 %defattr(-,root,root,-)
 %license COPYING COPYING.LESSER
 %{_libdir}/libzmq.so.3
 %{_libdir}/libzmq.so.3.0.0
 
 %files devel
+%manifest %{name}.manifest
 %defattr(-,root,root,-)
 %{_includedir}/zmq.h
 %{_includedir}/zmq_utils.h
