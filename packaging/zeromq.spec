@@ -1,6 +1,6 @@
 Name:          zeromq
-Version:       3.2.2
-Release:       1
+Version:       4.0.4
+Release:       0
 Summary:       The ZeroMQ messaging library
 Group:         System/Libraries
 License:       LGPL-3.0+
@@ -60,7 +60,7 @@ cp %{SOURCE1001} .
 %build
 %configure
 
-%{__make} %{?_smp_mflags}
+%__make %{?_smp_mflags}
 
 %install
 %make_install
@@ -77,7 +77,8 @@ cp %{SOURCE1001} .
 %defattr(-,root,root,-)
 %license COPYING COPYING.LESSER
 %{_libdir}/libzmq.so.3
-%{_libdir}/libzmq.so.3.0.0
+%{_libdir}/libzmq.so.3.1.0
+%{_bindir}/curve_keygen
 
 %files devel
 %manifest %{name}.manifest
