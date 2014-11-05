@@ -756,7 +756,9 @@ zmq_msg_more(3) Manual Page
 <h2 id="_description">DESCRIPTION</h2>
 <div class="sectionbody">
 <div class="paragraph"><p>The <em>zmq_msg_more()</em> function indicates whether this is part of a multi-part
-message, and there are further parts to receive.</p></div>
+message, and there are further parts to receive. This method can safely be
+called after <em>zmq_msg_close()</em>. This method is identical to <em>zmq_msg_get()</em>
+with an argument of ZMQ_MORE.</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -779,7 +781,7 @@ while (true) {
     int rc = zmq_msg_init (&amp;part);
     assert (rc == 0);
     //  Block until a message is available to be received from socket
-    rc = zmq_recvmsg (socket, &amp;part, 0);
+    rc = zmq_msg_recv (socket, &amp;part, 0);
     assert (rc != -1);
     if (zmq_msg_more (&amp;part))
         fprintf (stderr, "more\n");
@@ -787,7 +789,7 @@ while (true) {
         fprintf (stderr, "end\n");
         break;
     }
-    zmq_msg_close (part);
+    zmq_msg_close (&amp;part);
 }</tt></pre>
 </div></div>
 </div>
@@ -805,16 +807,16 @@ while (true) {
 <div class="sect1">
 <h2 id="_authors">AUTHORS</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>This ØMQ manual page was written by Chuck Remes &lt;<a href="mailto:cremes@mac.com">cremes@mac.com</a>&gt; and Pieter
-Hintjens &lt;<a href="mailto:ph@imatix.com">ph@imatix.com</a>&gt;.</p></div>
+<div class="paragraph"><p>This page was written by the ØMQ community. To make a change please
+read the ØMQ Contribution Policy at <a href="http://www.zeromq.org/docs:contributing">http://www.zeromq.org/docs:contributing</a>.</p></div>
 </div>
 </div>
 </div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-ØMQ 3.2.2<br />
-Last updated 2012-10-25 17:30:40 KST
+ØMQ 4.0.4<br />
+Last updated 2013-11-13 18:57:50 CET
 </div>
 </div>
 </body>

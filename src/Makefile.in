@@ -46,7 +46,7 @@ am__aclocal_m4_deps = $(top_srcdir)/config/libtool.m4 \
 	$(top_srcdir)/config/ltsugar.m4 \
 	$(top_srcdir)/config/ltversion.m4 \
 	$(top_srcdir)/config/lt~obsolete.m4 $(top_srcdir)/acinclude.m4 \
-	$(top_srcdir)/configure.in
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -86,28 +86,33 @@ LTLIBRARIES = $(lib_LTLIBRARIES)
 @BUILD_PGM_TRUE@libzmq_la_DEPENDENCIES =  \
 @BUILD_PGM_TRUE@	$(top_srcdir)/@pgm_srcdir@/libpgm_noinst.la
 am_libzmq_la_OBJECTS = libzmq_la-address.lo libzmq_la-clock.lo \
-	libzmq_la-ctx.lo libzmq_la-decoder.lo libzmq_la-devpoll.lo \
-	libzmq_la-dist.lo libzmq_la-encoder.lo libzmq_la-epoll.lo \
-	libzmq_la-err.lo libzmq_la-fq.lo libzmq_la-io_object.lo \
-	libzmq_la-io_thread.lo libzmq_la-ip.lo \
-	libzmq_la-ipc_address.lo libzmq_la-ipc_connecter.lo \
-	libzmq_la-ipc_listener.lo libzmq_la-kqueue.lo libzmq_la-lb.lo \
-	libzmq_la-mailbox.lo libzmq_la-msg.lo libzmq_la-mtrie.lo \
-	libzmq_la-object.lo libzmq_la-options.lo libzmq_la-own.lo \
-	libzmq_la-pair.lo libzmq_la-pgm_receiver.lo \
-	libzmq_la-pgm_sender.lo libzmq_la-pgm_socket.lo \
-	libzmq_la-pipe.lo libzmq_la-poll.lo libzmq_la-poller_base.lo \
-	libzmq_la-pull.lo libzmq_la-push.lo libzmq_la-proxy.lo \
-	libzmq_la-reaper.lo libzmq_la-pub.lo libzmq_la-random.lo \
-	libzmq_la-rep.lo libzmq_la-req.lo libzmq_la-select.lo \
-	libzmq_la-session_base.lo libzmq_la-signaler.lo \
-	libzmq_la-socket_base.lo libzmq_la-stream_engine.lo \
+	libzmq_la-ctx.lo libzmq_la-curve_client.lo \
+	libzmq_la-curve_server.lo libzmq_la-devpoll.lo \
+	libzmq_la-dist.lo libzmq_la-epoll.lo libzmq_la-err.lo \
+	libzmq_la-fq.lo libzmq_la-io_object.lo libzmq_la-io_thread.lo \
+	libzmq_la-ip.lo libzmq_la-ipc_address.lo \
+	libzmq_la-ipc_connecter.lo libzmq_la-ipc_listener.lo \
+	libzmq_la-kqueue.lo libzmq_la-lb.lo libzmq_la-mailbox.lo \
+	libzmq_la-mechanism.lo libzmq_la-msg.lo libzmq_la-mtrie.lo \
+	libzmq_la-null_mechanism.lo libzmq_la-object.lo \
+	libzmq_la-options.lo libzmq_la-own.lo libzmq_la-pair.lo \
+	libzmq_la-pgm_receiver.lo libzmq_la-pgm_sender.lo \
+	libzmq_la-pgm_socket.lo libzmq_la-pipe.lo \
+	libzmq_la-plain_mechanism.lo libzmq_la-poll.lo \
+	libzmq_la-poller_base.lo libzmq_la-pull.lo libzmq_la-push.lo \
+	libzmq_la-proxy.lo libzmq_la-reaper.lo libzmq_la-pub.lo \
+	libzmq_la-random.lo libzmq_la-rep.lo libzmq_la-req.lo \
+	libzmq_la-select.lo libzmq_la-session_base.lo \
+	libzmq_la-signaler.lo libzmq_la-socket_base.lo \
+	libzmq_la-stream.lo libzmq_la-stream_engine.lo \
 	libzmq_la-sub.lo libzmq_la-tcp.lo libzmq_la-tcp_address.lo \
 	libzmq_la-tcp_connecter.lo libzmq_la-tcp_listener.lo \
 	libzmq_la-thread.lo libzmq_la-trie.lo libzmq_la-xpub.lo \
 	libzmq_la-router.lo libzmq_la-dealer.lo \
 	libzmq_la-v1_decoder.lo libzmq_la-v1_encoder.lo \
-	libzmq_la-xsub.lo libzmq_la-zmq.lo libzmq_la-zmq_utils.lo
+	libzmq_la-v2_decoder.lo libzmq_la-v2_encoder.lo \
+	libzmq_la-xsub.lo libzmq_la-zmq.lo libzmq_la-zmq_utils.lo \
+	libzmq_la-raw_decoder.lo libzmq_la-raw_encoder.lo
 libzmq_la_OBJECTS = $(am_libzmq_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -315,6 +320,8 @@ libzmq_la_SOURCES = \
     command.hpp \
     config.hpp \
     ctx.hpp \
+    curve_client.hpp \
+    curve_server.hpp \
     decoder.hpp \
     devpoll.hpp \
     dist.hpp \
@@ -326,8 +333,6 @@ libzmq_la_SOURCES = \
     i_encoder.hpp \
     i_decoder.hpp \
     i_engine.hpp \
-    i_msg_sink.hpp \
-    i_msg_source.hpp \
     i_poll_events.hpp \
     io_object.hpp \
     io_thread.hpp \
@@ -341,9 +346,11 @@ libzmq_la_SOURCES = \
     lb.hpp \
     likely.hpp \
     mailbox.hpp \
+    mechanism.hpp  \
     msg.hpp \
     mtrie.hpp \
     mutex.hpp \
+    null_mechanism.hpp \
     object.hpp \
     options.hpp \
     own.hpp \
@@ -351,6 +358,7 @@ libzmq_la_SOURCES = \
     pgm_sender.hpp \
     pgm_socket.hpp \
     pipe.hpp \
+    plain_mechanism.hpp \
     platform.hpp \
     poll.hpp \
     poller.hpp \
@@ -369,6 +377,7 @@ libzmq_la_SOURCES = \
     signaler.hpp \
     socket_base.hpp \
     stdint.hpp \
+    stream.hpp \
     stream_engine.hpp \
     sub.hpp \
     tcp.hpp \
@@ -384,14 +393,15 @@ libzmq_la_SOURCES = \
     dealer.hpp \
     xsub.hpp \
     ypipe.hpp \
+    ypipe_base.hpp \
     yqueue.hpp \
     address.cpp \
     clock.cpp \
     ctx.cpp \
-    decoder.cpp \
+    curve_client.cpp \
+    curve_server.cpp \
     devpoll.cpp \
     dist.cpp \
-    encoder.cpp \
     epoll.cpp \
     err.cpp \
     fq.cpp \
@@ -404,8 +414,10 @@ libzmq_la_SOURCES = \
     kqueue.cpp \
     lb.cpp \
     mailbox.cpp \
+    mechanism.cpp \
     msg.cpp \
     mtrie.cpp \
+    null_mechanism.cpp \
     object.cpp \
     options.cpp \
     own.cpp \
@@ -414,6 +426,7 @@ libzmq_la_SOURCES = \
     pgm_sender.cpp \
     pgm_socket.cpp \
     pipe.cpp \
+    plain_mechanism.cpp \
     poll.cpp \
     poller_base.cpp \
     pull.cpp \
@@ -428,6 +441,7 @@ libzmq_la_SOURCES = \
     session_base.cpp \
     signaler.cpp \
     socket_base.cpp \
+    stream.cpp \
     stream_engine.cpp \
     sub.cpp \
     tcp.cpp \
@@ -440,17 +454,29 @@ libzmq_la_SOURCES = \
     router.cpp \
     dealer.cpp \
     v1_decoder.cpp \
-    v1_decoder.hpp \
     v1_encoder.cpp \
+    v1_decoder.hpp \
     v1_encoder.hpp \
-    v1_protocol.hpp \
+    v2_decoder.cpp \
+    v2_decoder.hpp \
+    v2_encoder.cpp \
+    v2_encoder.hpp \
+    v2_protocol.hpp \
     xsub.cpp \
     zmq.cpp \
-    zmq_utils.cpp
+    zmq_utils.cpp \
+    raw_decoder.hpp \
+    raw_decoder.cpp \
+    raw_encoder.hpp \
+    raw_encoder.cpp \
+    ypipe_conflate.hpp \
+    dbuffer.hpp
 
-@ON_ANDROID_FALSE@@ON_MINGW_FALSE@libzmq_la_LDFLAGS = -version-info @LTVER@ @LIBZMQ_EXTRA_LDFLAGS@
+@ON_ANDROID_FALSE@@ON_LINUX_FALSE@@ON_MINGW_FALSE@libzmq_la_LDFLAGS = -version-info @LTVER@ @LIBZMQ_EXTRA_LDFLAGS@ -Wl
+@ON_ANDROID_FALSE@@ON_LINUX_TRUE@@ON_MINGW_FALSE@libzmq_la_LDFLAGS = -version-info @LTVER@ @LIBZMQ_EXTRA_LDFLAGS@ -Wl,--version-script=$(srcdir)/libzmq.vers
 @ON_ANDROID_TRUE@@ON_MINGW_FALSE@libzmq_la_LDFLAGS = -avoid-version -version-info @LTVER@ @LIBZMQ_EXTRA_LDFLAGS@
 @ON_MINGW_TRUE@libzmq_la_LDFLAGS = -no-undefined -avoid-version -version-info @LTVER@ @LIBZMQ_EXTRA_LDFLAGS@
+EXTRA_DIST = libzmq.vers
 libzmq_la_CXXFLAGS = @LIBZMQ_EXTRA_CXXFLAGS@
 @BUILD_PGM_TRUE@libzmq_la_CPPFLAGS = -I$(top_srcdir)/@pgm_srcdir@/include/
 @BUILD_PGM_TRUE@libzmq_la_LIBADD = $(top_srcdir)/@pgm_srcdir@/libpgm_noinst.la
@@ -549,11 +575,11 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-address.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-clock.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-ctx.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-curve_client.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-curve_server.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-dealer.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-decoder.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-devpoll.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-dist.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-encoder.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-epoll.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-err.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-fq.Plo@am__quote@
@@ -566,8 +592,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-kqueue.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-lb.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-mailbox.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-mechanism.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-msg.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-mtrie.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-null_mechanism.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-object.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-options.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-own.Plo@am__quote@
@@ -576,6 +604,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-pgm_sender.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-pgm_socket.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-pipe.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-plain_mechanism.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-poll.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-poller_base.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-proxy.Plo@am__quote@
@@ -583,6 +612,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-pull.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-push.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-random.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-raw_decoder.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-raw_encoder.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-reaper.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-rep.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-req.Plo@am__quote@
@@ -591,6 +622,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-session_base.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-signaler.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-socket_base.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-stream.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-stream_engine.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-sub.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-tcp.Plo@am__quote@
@@ -601,6 +633,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-trie.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-v1_decoder.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-v1_encoder.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-v2_decoder.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-v2_encoder.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-xpub.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-xsub.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libzmq_la-zmq.Plo@am__quote@
@@ -648,12 +682,19 @@ libzmq_la-ctx.lo: ctx.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzmq_la_CPPFLAGS) $(CPPFLAGS) $(libzmq_la_CXXFLAGS) $(CXXFLAGS) -c -o libzmq_la-ctx.lo `test -f 'ctx.cpp' || echo '$(srcdir)/'`ctx.cpp
 
-libzmq_la-decoder.lo: decoder.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzmq_la_CPPFLAGS) $(CPPFLAGS) $(libzmq_la_CXXFLAGS) $(CXXFLAGS) -MT libzmq_la-decoder.lo -MD -MP -MF $(DEPDIR)/libzmq_la-decoder.Tpo -c -o libzmq_la-decoder.lo `test -f 'decoder.cpp' || echo '$(srcdir)/'`decoder.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libzmq_la-decoder.Tpo $(DEPDIR)/libzmq_la-decoder.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='decoder.cpp' object='libzmq_la-decoder.lo' libtool=yes @AMDEPBACKSLASH@
+libzmq_la-curve_client.lo: curve_client.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzmq_la_CPPFLAGS) $(CPPFLAGS) $(libzmq_la_CXXFLAGS) $(CXXFLAGS) -MT libzmq_la-curve_client.lo -MD -MP -MF $(DEPDIR)/libzmq_la-curve_client.Tpo -c -o libzmq_la-curve_client.lo `test -f 'curve_client.cpp' || echo '$(srcdir)/'`curve_client.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libzmq_la-curve_client.Tpo $(DEPDIR)/libzmq_la-curve_client.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='curve_client.cpp' object='libzmq_la-curve_client.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzmq_la_CPPFLAGS) $(CPPFLAGS) $(libzmq_la_CXXFLAGS) $(CXXFLAGS) -c -o libzmq_la-decoder.lo `test -f 'decoder.cpp' || echo '$(srcdir)/'`decoder.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzmq_la_CPPFLAGS) $(CPPFLAGS) $(libzmq_la_CXXFLAGS) $(CXXFLAGS) -c -o libzmq_la-curve_client.lo `test -f 'curve_client.cpp' || echo '$(srcdir)/'`curve_client.cpp
+
+libzmq_la-curve_server.lo: curve_server.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzmq_la_CPPFLAGS) $(CPPFLAGS) $(libzmq_la_CXXFLAGS) $(CXXFLAGS) -MT libzmq_la-curve_server.lo -MD -MP -MF $(DEPDIR)/libzmq_la-curve_server.Tpo -c -o libzmq_la-curve_server.lo `test -f 'curve_server.cpp' || echo '$(srcdir)/'`curve_server.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libzmq_la-curve_server.Tpo $(DEPDIR)/libzmq_la-curve_server.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='curve_server.cpp' object='libzmq_la-curve_server.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzmq_la_CPPFLAGS) $(CPPFLAGS) $(libzmq_la_CXXFLAGS) $(CXXFLAGS) -c -o libzmq_la-curve_server.lo `test -f 'curve_server.cpp' || echo '$(srcdir)/'`curve_server.cpp
 
 libzmq_la-devpoll.lo: devpoll.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzmq_la_CPPFLAGS) $(CPPFLAGS) $(libzmq_la_CXXFLAGS) $(CXXFLAGS) -MT libzmq_la-devpoll.lo -MD -MP -MF $(DEPDIR)/libzmq_la-devpoll.Tpo -c -o libzmq_la-devpoll.lo `test -f 'devpoll.cpp' || echo '$(srcdir)/'`devpoll.cpp
@@ -668,13 +709,6 @@ libzmq_la-dist.lo: dist.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='dist.cpp' object='libzmq_la-dist.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzmq_la_CPPFLAGS) $(CPPFLAGS) $(libzmq_la_CXXFLAGS) $(CXXFLAGS) -c -o libzmq_la-dist.lo `test -f 'dist.cpp' || echo '$(srcdir)/'`dist.cpp
-
-libzmq_la-encoder.lo: encoder.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzmq_la_CPPFLAGS) $(CPPFLAGS) $(libzmq_la_CXXFLAGS) $(CXXFLAGS) -MT libzmq_la-encoder.lo -MD -MP -MF $(DEPDIR)/libzmq_la-encoder.Tpo -c -o libzmq_la-encoder.lo `test -f 'encoder.cpp' || echo '$(srcdir)/'`encoder.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libzmq_la-encoder.Tpo $(DEPDIR)/libzmq_la-encoder.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='encoder.cpp' object='libzmq_la-encoder.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzmq_la_CPPFLAGS) $(CPPFLAGS) $(libzmq_la_CXXFLAGS) $(CXXFLAGS) -c -o libzmq_la-encoder.lo `test -f 'encoder.cpp' || echo '$(srcdir)/'`encoder.cpp
 
 libzmq_la-epoll.lo: epoll.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzmq_la_CPPFLAGS) $(CPPFLAGS) $(libzmq_la_CXXFLAGS) $(CXXFLAGS) -MT libzmq_la-epoll.lo -MD -MP -MF $(DEPDIR)/libzmq_la-epoll.Tpo -c -o libzmq_la-epoll.lo `test -f 'epoll.cpp' || echo '$(srcdir)/'`epoll.cpp
@@ -760,6 +794,13 @@ libzmq_la-mailbox.lo: mailbox.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzmq_la_CPPFLAGS) $(CPPFLAGS) $(libzmq_la_CXXFLAGS) $(CXXFLAGS) -c -o libzmq_la-mailbox.lo `test -f 'mailbox.cpp' || echo '$(srcdir)/'`mailbox.cpp
 
+libzmq_la-mechanism.lo: mechanism.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzmq_la_CPPFLAGS) $(CPPFLAGS) $(libzmq_la_CXXFLAGS) $(CXXFLAGS) -MT libzmq_la-mechanism.lo -MD -MP -MF $(DEPDIR)/libzmq_la-mechanism.Tpo -c -o libzmq_la-mechanism.lo `test -f 'mechanism.cpp' || echo '$(srcdir)/'`mechanism.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libzmq_la-mechanism.Tpo $(DEPDIR)/libzmq_la-mechanism.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='mechanism.cpp' object='libzmq_la-mechanism.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzmq_la_CPPFLAGS) $(CPPFLAGS) $(libzmq_la_CXXFLAGS) $(CXXFLAGS) -c -o libzmq_la-mechanism.lo `test -f 'mechanism.cpp' || echo '$(srcdir)/'`mechanism.cpp
+
 libzmq_la-msg.lo: msg.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzmq_la_CPPFLAGS) $(CPPFLAGS) $(libzmq_la_CXXFLAGS) $(CXXFLAGS) -MT libzmq_la-msg.lo -MD -MP -MF $(DEPDIR)/libzmq_la-msg.Tpo -c -o libzmq_la-msg.lo `test -f 'msg.cpp' || echo '$(srcdir)/'`msg.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libzmq_la-msg.Tpo $(DEPDIR)/libzmq_la-msg.Plo
@@ -773,6 +814,13 @@ libzmq_la-mtrie.lo: mtrie.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='mtrie.cpp' object='libzmq_la-mtrie.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzmq_la_CPPFLAGS) $(CPPFLAGS) $(libzmq_la_CXXFLAGS) $(CXXFLAGS) -c -o libzmq_la-mtrie.lo `test -f 'mtrie.cpp' || echo '$(srcdir)/'`mtrie.cpp
+
+libzmq_la-null_mechanism.lo: null_mechanism.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzmq_la_CPPFLAGS) $(CPPFLAGS) $(libzmq_la_CXXFLAGS) $(CXXFLAGS) -MT libzmq_la-null_mechanism.lo -MD -MP -MF $(DEPDIR)/libzmq_la-null_mechanism.Tpo -c -o libzmq_la-null_mechanism.lo `test -f 'null_mechanism.cpp' || echo '$(srcdir)/'`null_mechanism.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libzmq_la-null_mechanism.Tpo $(DEPDIR)/libzmq_la-null_mechanism.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='null_mechanism.cpp' object='libzmq_la-null_mechanism.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzmq_la_CPPFLAGS) $(CPPFLAGS) $(libzmq_la_CXXFLAGS) $(CXXFLAGS) -c -o libzmq_la-null_mechanism.lo `test -f 'null_mechanism.cpp' || echo '$(srcdir)/'`null_mechanism.cpp
 
 libzmq_la-object.lo: object.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzmq_la_CPPFLAGS) $(CPPFLAGS) $(libzmq_la_CXXFLAGS) $(CXXFLAGS) -MT libzmq_la-object.lo -MD -MP -MF $(DEPDIR)/libzmq_la-object.Tpo -c -o libzmq_la-object.lo `test -f 'object.cpp' || echo '$(srcdir)/'`object.cpp
@@ -829,6 +877,13 @@ libzmq_la-pipe.lo: pipe.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='pipe.cpp' object='libzmq_la-pipe.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzmq_la_CPPFLAGS) $(CPPFLAGS) $(libzmq_la_CXXFLAGS) $(CXXFLAGS) -c -o libzmq_la-pipe.lo `test -f 'pipe.cpp' || echo '$(srcdir)/'`pipe.cpp
+
+libzmq_la-plain_mechanism.lo: plain_mechanism.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzmq_la_CPPFLAGS) $(CPPFLAGS) $(libzmq_la_CXXFLAGS) $(CXXFLAGS) -MT libzmq_la-plain_mechanism.lo -MD -MP -MF $(DEPDIR)/libzmq_la-plain_mechanism.Tpo -c -o libzmq_la-plain_mechanism.lo `test -f 'plain_mechanism.cpp' || echo '$(srcdir)/'`plain_mechanism.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libzmq_la-plain_mechanism.Tpo $(DEPDIR)/libzmq_la-plain_mechanism.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='plain_mechanism.cpp' object='libzmq_la-plain_mechanism.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzmq_la_CPPFLAGS) $(CPPFLAGS) $(libzmq_la_CXXFLAGS) $(CXXFLAGS) -c -o libzmq_la-plain_mechanism.lo `test -f 'plain_mechanism.cpp' || echo '$(srcdir)/'`plain_mechanism.cpp
 
 libzmq_la-poll.lo: poll.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzmq_la_CPPFLAGS) $(CPPFLAGS) $(libzmq_la_CXXFLAGS) $(CXXFLAGS) -MT libzmq_la-poll.lo -MD -MP -MF $(DEPDIR)/libzmq_la-poll.Tpo -c -o libzmq_la-poll.lo `test -f 'poll.cpp' || echo '$(srcdir)/'`poll.cpp
@@ -928,6 +983,13 @@ libzmq_la-socket_base.lo: socket_base.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzmq_la_CPPFLAGS) $(CPPFLAGS) $(libzmq_la_CXXFLAGS) $(CXXFLAGS) -c -o libzmq_la-socket_base.lo `test -f 'socket_base.cpp' || echo '$(srcdir)/'`socket_base.cpp
 
+libzmq_la-stream.lo: stream.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzmq_la_CPPFLAGS) $(CPPFLAGS) $(libzmq_la_CXXFLAGS) $(CXXFLAGS) -MT libzmq_la-stream.lo -MD -MP -MF $(DEPDIR)/libzmq_la-stream.Tpo -c -o libzmq_la-stream.lo `test -f 'stream.cpp' || echo '$(srcdir)/'`stream.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libzmq_la-stream.Tpo $(DEPDIR)/libzmq_la-stream.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stream.cpp' object='libzmq_la-stream.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzmq_la_CPPFLAGS) $(CPPFLAGS) $(libzmq_la_CXXFLAGS) $(CXXFLAGS) -c -o libzmq_la-stream.lo `test -f 'stream.cpp' || echo '$(srcdir)/'`stream.cpp
+
 libzmq_la-stream_engine.lo: stream_engine.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzmq_la_CPPFLAGS) $(CPPFLAGS) $(libzmq_la_CXXFLAGS) $(CXXFLAGS) -MT libzmq_la-stream_engine.lo -MD -MP -MF $(DEPDIR)/libzmq_la-stream_engine.Tpo -c -o libzmq_la-stream_engine.lo `test -f 'stream_engine.cpp' || echo '$(srcdir)/'`stream_engine.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libzmq_la-stream_engine.Tpo $(DEPDIR)/libzmq_la-stream_engine.Plo
@@ -1019,6 +1081,20 @@ libzmq_la-v1_encoder.lo: v1_encoder.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzmq_la_CPPFLAGS) $(CPPFLAGS) $(libzmq_la_CXXFLAGS) $(CXXFLAGS) -c -o libzmq_la-v1_encoder.lo `test -f 'v1_encoder.cpp' || echo '$(srcdir)/'`v1_encoder.cpp
 
+libzmq_la-v2_decoder.lo: v2_decoder.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzmq_la_CPPFLAGS) $(CPPFLAGS) $(libzmq_la_CXXFLAGS) $(CXXFLAGS) -MT libzmq_la-v2_decoder.lo -MD -MP -MF $(DEPDIR)/libzmq_la-v2_decoder.Tpo -c -o libzmq_la-v2_decoder.lo `test -f 'v2_decoder.cpp' || echo '$(srcdir)/'`v2_decoder.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libzmq_la-v2_decoder.Tpo $(DEPDIR)/libzmq_la-v2_decoder.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='v2_decoder.cpp' object='libzmq_la-v2_decoder.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzmq_la_CPPFLAGS) $(CPPFLAGS) $(libzmq_la_CXXFLAGS) $(CXXFLAGS) -c -o libzmq_la-v2_decoder.lo `test -f 'v2_decoder.cpp' || echo '$(srcdir)/'`v2_decoder.cpp
+
+libzmq_la-v2_encoder.lo: v2_encoder.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzmq_la_CPPFLAGS) $(CPPFLAGS) $(libzmq_la_CXXFLAGS) $(CXXFLAGS) -MT libzmq_la-v2_encoder.lo -MD -MP -MF $(DEPDIR)/libzmq_la-v2_encoder.Tpo -c -o libzmq_la-v2_encoder.lo `test -f 'v2_encoder.cpp' || echo '$(srcdir)/'`v2_encoder.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libzmq_la-v2_encoder.Tpo $(DEPDIR)/libzmq_la-v2_encoder.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='v2_encoder.cpp' object='libzmq_la-v2_encoder.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzmq_la_CPPFLAGS) $(CPPFLAGS) $(libzmq_la_CXXFLAGS) $(CXXFLAGS) -c -o libzmq_la-v2_encoder.lo `test -f 'v2_encoder.cpp' || echo '$(srcdir)/'`v2_encoder.cpp
+
 libzmq_la-xsub.lo: xsub.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzmq_la_CPPFLAGS) $(CPPFLAGS) $(libzmq_la_CXXFLAGS) $(CXXFLAGS) -MT libzmq_la-xsub.lo -MD -MP -MF $(DEPDIR)/libzmq_la-xsub.Tpo -c -o libzmq_la-xsub.lo `test -f 'xsub.cpp' || echo '$(srcdir)/'`xsub.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libzmq_la-xsub.Tpo $(DEPDIR)/libzmq_la-xsub.Plo
@@ -1039,6 +1115,20 @@ libzmq_la-zmq_utils.lo: zmq_utils.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='zmq_utils.cpp' object='libzmq_la-zmq_utils.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzmq_la_CPPFLAGS) $(CPPFLAGS) $(libzmq_la_CXXFLAGS) $(CXXFLAGS) -c -o libzmq_la-zmq_utils.lo `test -f 'zmq_utils.cpp' || echo '$(srcdir)/'`zmq_utils.cpp
+
+libzmq_la-raw_decoder.lo: raw_decoder.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzmq_la_CPPFLAGS) $(CPPFLAGS) $(libzmq_la_CXXFLAGS) $(CXXFLAGS) -MT libzmq_la-raw_decoder.lo -MD -MP -MF $(DEPDIR)/libzmq_la-raw_decoder.Tpo -c -o libzmq_la-raw_decoder.lo `test -f 'raw_decoder.cpp' || echo '$(srcdir)/'`raw_decoder.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libzmq_la-raw_decoder.Tpo $(DEPDIR)/libzmq_la-raw_decoder.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='raw_decoder.cpp' object='libzmq_la-raw_decoder.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzmq_la_CPPFLAGS) $(CPPFLAGS) $(libzmq_la_CXXFLAGS) $(CXXFLAGS) -c -o libzmq_la-raw_decoder.lo `test -f 'raw_decoder.cpp' || echo '$(srcdir)/'`raw_decoder.cpp
+
+libzmq_la-raw_encoder.lo: raw_encoder.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzmq_la_CPPFLAGS) $(CPPFLAGS) $(libzmq_la_CXXFLAGS) $(CXXFLAGS) -MT libzmq_la-raw_encoder.lo -MD -MP -MF $(DEPDIR)/libzmq_la-raw_encoder.Tpo -c -o libzmq_la-raw_encoder.lo `test -f 'raw_encoder.cpp' || echo '$(srcdir)/'`raw_encoder.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libzmq_la-raw_encoder.Tpo $(DEPDIR)/libzmq_la-raw_encoder.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='raw_encoder.cpp' object='libzmq_la-raw_encoder.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libzmq_la_CPPFLAGS) $(CPPFLAGS) $(libzmq_la_CXXFLAGS) $(CXXFLAGS) -c -o libzmq_la-raw_encoder.lo `test -f 'raw_encoder.cpp' || echo '$(srcdir)/'`raw_encoder.cpp
 
 mostlyclean-libtool:
 	-rm -f *.lo

@@ -818,10 +818,13 @@ call <em>zmq_bind()</em> before calling <em>zmq_connect()</em>. The second excep
 <td class="icon">
 <div class="title">Note</div>
 </td>
-<td class="content">following a <em>zmq_connect()</em>, the socket enters its normal <em>ready</em> state.
-By contrast, following a <em>zmq_bind()</em> alone, the socket enters a <em>mute</em> state
-in which the socket blocks or drops messages according to the socket type, as
-defined in <a href="zmq_socket.html">zmq_socket(3)</a>.</td>
+<td class="content">following a <em>zmq_connect()</em>, for socket types except for ZMQ_ROUTER,
+the socket enters its normal <em>ready</em> state. By contrast, following a
+<em>zmq_bind()</em> alone, the socket enters a <em>mute</em> state in which the socket
+blocks or drops messages according to the socket type, as defined in
+<a href="zmq_socket.html">zmq_socket(3)</a>. A ZMQ_ROUTER socket enters its normal <em>ready</em> state
+for a specific peer only when handshaking is complete for that peer, which
+may take an arbitrary time.</td>
 </tr></table>
 </div>
 </div>
@@ -917,16 +920,16 @@ assert (rc == 0);</tt></pre>
 <div class="sect1">
 <h2 id="_authors">AUTHORS</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>This ØMQ manual page was written by Pieter Hintjens &lt;<a href="mailto:ph@imatix.com">ph@imatix.com</a>&gt;,
-Martin Sustrik &lt;<a href="mailto:sustrik@250bpm.com">sustrik@250bpm.com</a>&gt; and Martin Lucina &lt;<a href="mailto:mato@kotelna.sk">mato@kotelna.sk</a>&gt;.</p></div>
+<div class="paragraph"><p>This page was written by the ØMQ community. To make a change please
+read the ØMQ Contribution Policy at <a href="http://www.zeromq.org/docs:contributing">http://www.zeromq.org/docs:contributing</a>.</p></div>
 </div>
 </div>
 </div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-ØMQ 3.2.2<br />
-Last updated 2012-11-14 10:09:14 KST
+ØMQ 4.0.4<br />
+Last updated 2013-11-13 18:57:50 CET
 </div>
 </div>
 </body>

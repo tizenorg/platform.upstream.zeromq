@@ -832,16 +832,6 @@ system interfaces other than <em>poll()</em>, and as such may be subject to the 
 of those interfaces in ways not defined in this documentation.</td>
 </tr></table>
 </div>
-<div class="admonitionblock">
-<table><tr>
-<td class="icon">
-<div class="title">Note</div>
-</td>
-<td class="content">The <em>zmq_send()</em> function will clear all pending events on a socket. Thus,
-if you use <em>zmq_poll()</em> to monitor input on a socket, use it before output as
-well, and process all events after each <em>zmq_poll()</em> call.</td>
-</tr></table>
-</div>
 </div>
 </div>
 <div class="sect1">
@@ -920,16 +910,16 @@ assert (rc &gt;= 0);
 <div class="sect1">
 <h2 id="_authors">AUTHORS</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>This ØMQ manual page was written by Martin Sustrik &lt;<a href="mailto:sustrik@250bpm.com">sustrik@250bpm.com</a>&gt; and
-Martin Lucina &lt;<a href="mailto:mato@kotelna.sk">mato@kotelna.sk</a>&gt;.</p></div>
+<div class="paragraph"><p>This page was written by the ØMQ community. To make a change please
+read the ØMQ Contribution Policy at <a href="http://www.zeromq.org/docs:contributing">http://www.zeromq.org/docs:contributing</a>.</p></div>
 </div>
 </div>
 </div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-ØMQ 3.2.2<br />
-Last updated 2012-10-25 17:30:40 KST
+ØMQ 4.0.4<br />
+Last updated 2013-11-13 18:57:50 CET
 </div>
 </div>
 </body>

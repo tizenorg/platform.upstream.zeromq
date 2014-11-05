@@ -786,9 +786,31 @@ socket option. See <a href="zmq_getsockopt.html">zmq_getsockopt(3)</a> for detai
 <td class="icon">
 <div class="title">Note</div>
 </td>
-<td class="content">any existing binding to the same endpoint shall be overridden. In this
-behavior, the <em>ipc</em> transport is not consistent with the <em>tcp</em> or <em>inproc</em>
-transports.</td>
+<td class="content">any existing binding to the same endpoint shall be overridden. That is,
+if a second process binds to an endpoint already bound by a process, this
+will succeed and the first process will lose its binding. In this behavior,
+the <em>ipc</em> transport is not consistent with the <em>tcp</em> or <em>inproc</em> transports.</td>
+</tr></table>
+</div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">the endpoint pathname must be writable by the process. When the endpoint
+starts with <em>/</em>, e.g., <tt>ipc:///pathname</tt>, this will be an <em>absolute</em> pathname.
+If the endpoint specifies a directory that does not exist, the bind shall fail.</td>
+</tr></table>
+</div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">on Linux only, when the endpoint pathname starts with <tt>@</tt>, the abstract
+namespace shall be used.  The abstract namespace is independent of the
+filesystem and if a process attempts to bind an endpoint already bound by a
+process, it will fail.  See unix(7) for details.</td>
 </tr></table>
 </div>
 </div>
@@ -836,16 +858,16 @@ assert (rc == 0);</tt></pre>
 <div class="sect1">
 <h2 id="_authors">AUTHORS</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>This ØMQ manual page was written by Pieter Hintjens &lt;<a href="mailto:ph@imatix.com">ph@imatix.com</a>&gt;,
-Martin Sustrik &lt;<a href="mailto:sustrik@250bpm.com">sustrik@250bpm.com</a>&gt; and Martin Lucina &lt;<a href="mailto:mato@kotelna.sk">mato@kotelna.sk</a>&gt;.</p></div>
+<div class="paragraph"><p>This page was written by the ØMQ community. To make a change please
+read the ØMQ Contribution Policy at <a href="http://www.zeromq.org/docs:contributing">http://www.zeromq.org/docs:contributing</a>.</p></div>
 </div>
 </div>
 </div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-ØMQ 3.2.2<br />
-Last updated 2012-11-14 10:09:14 KST
+ØMQ 4.0.4<br />
+Last updated 2013-11-13 18:57:50 CET
 </div>
 </div>
 </body>

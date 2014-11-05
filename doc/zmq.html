@@ -793,15 +793,7 @@ Destroy a ØMQ context
 </dt>
 <dd>
 <p>
-    <a href="zmq_ctx_destroy.html">zmq_ctx_destroy(3)</a>
-</p>
-</dd>
-<dt class="hdlist1">
-Monitor a ØMQ context
-</dt>
-<dd>
-<p>
-    <a href="zmq_ctx_set_monitor.html">zmq_ctx_set_monitor(3)</a>
+    <a href="zmq_ctx_term.html">zmq_ctx_term(3)</a>
 </p>
 </dd>
 </dl></div>
@@ -959,9 +951,12 @@ Sending and receiving messages
     <a href="zmq_msg_recv.html">zmq_msg_recv(3)</a>
     <a href="zmq_send.html">zmq_send(3)</a>
     <a href="zmq_recv.html">zmq_recv(3)</a>
+    <a href="zmq_send_const.html">zmq_send_const(3)</a>
 </p>
 </dd>
 </dl></div>
+<div class="paragraph"><p>Monitoring socket events:
+    <a href="zmq_socket_monitor.html">zmq_socket_monitor(3)</a></p></div>
 <div class="paragraph"><div class="title">Input/output multiplexing</div><p>ØMQ provides a mechanism for applications to multiplex input/output events over
 a set containing both ØMQ sockets and standard sockets. This mechanism mirrors
 the standard <em>poll()</em> system call, and is described in detail in
@@ -1015,6 +1010,44 @@ a <em>frontend</em> socket to a <em>backend</em> socket and switches all message
 two sockets, opaquely. A proxy may optionally capture all traffic to a third
 socket. To start a proxy in an application thread, use <a href="zmq_proxy.html">zmq_proxy(3)</a>.</p></div>
 </div>
+<div class="sect2">
+<h3 id="_security">Security</h3>
+<div class="paragraph"><p>A ØMQ socket can select a security mechanism. Both peers must use the same
+security mechanism.</p></div>
+<div class="paragraph"><p>The following security mechanisms are provided for IPC and TCP connections:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+Null security
+</dt>
+<dd>
+<p>
+    <a href="zmq_null.html">zmq_null(7)</a>
+</p>
+</dd>
+<dt class="hdlist1">
+Plain-text authentication using username and password
+</dt>
+<dd>
+<p>
+    <a href="zmq_plain.html">zmq_plain(7)</a>
+</p>
+</dd>
+<dt class="hdlist1">
+Elliptic curve authentication and encryption
+</dt>
+<dd>
+<p>
+    <a href="zmq_curve.html">zmq_curve(7)</a>
+</p>
+</dd>
+</dl></div>
+<div class="paragraph"><p>Generate a CURVE keypair in armored text format:
+    <a href="zmq_curve_keypair.html">zmq_curve_keypair(3)</a></p></div>
+<div class="paragraph"><p>Convert an armored key into a 32-byte binary key:
+    <a href="zmq_z85_decode.html">zmq_z85_decode(3)</a></p></div>
+<div class="paragraph"><p>Convert a 32-byte binary CURVE key to an armored text string:
+    <a href="zmq_z85_encode.html">zmq_z85_encode(3)</a></p></div>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -1063,8 +1096,8 @@ members of the ØMQ community and pointers can be found on the ØMQ website.</p>
 <div class="sect1">
 <h2 id="_authors">AUTHORS</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>This ØMQ manual page was written by Martin Sustrik &lt;<a href="mailto:sustrik@250bpm.com">sustrik@250bpm.com</a>&gt;,
-Martin Lucina &lt;<a href="mailto:martin@lucina.net">martin@lucina.net</a>&gt;, and Pieter Hintjens &lt;<a href="mailto:ph@imatix.com">ph@imatix.com</a>&gt;.</p></div>
+<div class="paragraph"><p>This page was written by the ØMQ community. To make a change please
+read the ØMQ Contribution Policy at <a href="http://www.zeromq.org/docs:contributing">http://www.zeromq.org/docs:contributing</a>.</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -1086,8 +1119,8 @@ included with the ØMQ distribution.</p></div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-ØMQ 3.2.2<br />
-Last updated 2012-10-25 17:30:40 KST
+ØMQ 4.0.4<br />
+Last updated 2013-11-13 18:57:50 CET
 </div>
 </div>
 </body>

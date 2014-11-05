@@ -1,15 +1,26 @@
-Contributors
-============
+Corporate Contributors
+======================
+
+Copyright (c) 2007-2013 iMatix Corporation
+Copyright (c) 2009-2011 250bpm s.r.o.
+Copyright (c) 2010-2011 Miru Limited
+Copyright (c) 2011 VMware, Inc.
+Copyright (c) 2012 Spotify AB
+
+Individual Contributors
+=======================
 
 AJ Lewis <aj.lewis@quantum.com>
 Alexej Lotz <alexej.lotz@arcor.de>
 Andrew Thompson <andy@fud.org.nz>
 Asko Kauppi <askok@dnainternet.net>
+Attila Mark <gougolith@gmail.com>
 Barak Amar <barak.amar@gmail.com>
 Ben Gray <ben@benjamg.com>
 Bernd Prager <bernd@prager.ws>
 Bernd Melchers <melchers@ZEDAT.FU-Berlin.DE>
 Bob Beaty <rbeaty@peak6.com>
+Brandon Carpenter <hashstat@yahoo.com>
 Brian Buchanan <bwb@holo.org>
 Brett Cameron <Brett.Cameron@hp.com>
 Burak Arslan <burak-github@arskom.com.tr>
@@ -18,6 +29,7 @@ Chia-liang Kao <clkao@clkao.org>
 Chris Rempel <csrl@gmx.com>
 Chris Wong <chris@chriswongstudio.com>
 Christian Gudrian <christian.gudrian@fluidon.com>
+Christian Kamm <kamm@incasoftware.de>
 Chuck Remes <cremes@mac.com>
 Conrad D. Steenberg <conrad.steenberg@caltech.edu>
 Dhammika Pathirana <dhammika@gmail.com>
@@ -40,6 +52,7 @@ Jacob Rideout <jacob.rideout@returnpath.net>
 Joe Thornber <joe.thornber@gmail.com>
 Jon Dyte <jon@totient.co.uk>
 Kamil Shakirov <kamils80@gmail.com>
+Ken Steele <ken@tilera.com>
 Marc Rossi <mrossi19@gmail.com>
 Martin Hurton <hurtonm@gmail.com>
 Martin Lucina <martin@lucina.net>
@@ -64,8 +77,10 @@ Peter Bourgon <peter.bourgon@gmail.com>
 Philip Kovacs <phil@philkovacs.com>
 Pieter Hintjens <ph@imatix.com>
 Piotr Trojanek <piotr.trojanek@gmail.com>
+Richard Newton <richard_newton@waters.com>
 Robert G. Jakabosky <bobby@sharedrealm.com>
 Sebastian Otaegui <feniix@gmail.com>
+Stefan Radomski <radomski@tk.informatik.tu-darmstadt.de>
 Steven McCoy <steven.mccoy@miru.hk>
 Stuart Webster <sw_webster@hotmail.com>
 Tamara Kustarova <kustarova.tamara@gmail.com>
@@ -77,6 +92,7 @@ Toralf Wittner <toralf.wittner@gmail.com>
 Tore Halvorsen <tore.halvorsen@gmail.com>
 Vitaly Mayatskikh <v.mayatskih@gmail.com>
 Lourens Naudé <lourens@methodmissing.com>
+Hardeep Singh <hshardeesi@gmail.com>
 
 Credits
 =======
@@ -106,4 +122,3 @@ Peter Lemenkov <lemenkov@gmail.com>
 Robert Zhang <robert@scout-trading.com>
 Toralf Wittner <toralf.wittner@gmail.com>
 Zed Shaw <zed.shaw@gmail.com>
-

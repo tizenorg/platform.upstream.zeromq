@@ -751,8 +751,11 @@ zmq_setsockopt(3) Manual Page
 <div class="sectionbody">
 <div class="paragraph"><p><strong>int zmq_setsockopt (void <em>*socket</em>, int <em>option_name</em>, const void <em>*option_value</em>, size_t <em>option_len</em>);</strong></p></div>
 <div class="paragraph"><p>Caution: All options, with the exception of ZMQ_SUBSCRIBE, ZMQ_UNSUBSCRIBE,
-ZMQ_LINGER, ZMQ_ROUTER_MANDATORY and ZMQ_XPUB_VERBOSE only take effect for
-subsequent socket bind/connects.</p></div>
+ZMQ_LINGER, ZMQ_ROUTER_MANDATORY, ZMQ_PROBE_ROUTER, ZMQ_XPUB_VERBOSE,
+ZMQ_REQ_CORRELATE, and ZMQ_REQ_RELAXED, only take effect for subsequent socket
+bind/connects.</p></div>
+<div class="paragraph"><p>Specifically, security options take effect for subsequent bind/connect calls,
+and can be changed at any time to affect subsequent binds and/or connects.</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -768,7 +771,8 @@ argument is the size of the option value in bytes.</p></div>
 <div class="paragraph"><p>The <em>ZMQ_SNDHWM</em> option shall set the high water mark for outbound messages on
 the specified <em>socket</em>. The high water mark is a hard limit on the maximum
 number of outstanding messages ØMQ shall queue in memory for any single peer
-that the specified <em>socket</em> is communicating with.</p></div>
+that the specified <em>socket</em> is communicating with. A value of zero means no
+limit.</p></div>
 <div class="paragraph"><p>If this limit has been reached the socket shall enter an exceptional state and
 depending on the socket type, ØMQ shall take appropriate action such as
 blocking or dropping sent messages. Refer to the individual socket descriptions
@@ -836,7 +840,8 @@ all
 <div class="paragraph"><p>The <em>ZMQ_RCVHWM</em> option shall set the high water mark for inbound messages on
 the specified <em>socket</em>. The high water mark is a hard limit on the maximum
 number of outstanding messages ØMQ shall queue in memory for any single peer
-that the specified <em>socket</em> is communicating with.</p></div>
+that the specified <em>socket</em> is communicating with. A value of zero means no
+limit.</p></div>
 <div class="paragraph"><p>If this limit has been reached the socket shall enter an exceptional state and
 depending on the socket type, ØMQ shall take appropriate action such as
 blocking or dropping sent messages. Refer to the individual socket descriptions
@@ -1062,14 +1067,12 @@ ZMQ_SUB
 </div>
 <div class="sect2">
 <h3 id="_zmq_identity_set_socket_identity">ZMQ_IDENTITY: Set socket identity</h3>
-<div class="paragraph"><p>The <em>ZMQ_IDENTITY</em> option shall set the identity of the specified <em>socket</em>.
-Socket identity is used only by request/reply pattern. Namely, it can be used
-in tandem with ROUTER socket to route messages to the peer with specific
-identity.</p></div>
-<div class="paragraph"><p>Identity should be at least one byte and at most 255 bytes long. Identities
-starting with binary zero are reserved for use by ØMQ infrastructure.</p></div>
-<div class="paragraph"><p>If two peers use the same identity when connecting to a third peer, the
-results shall be undefined.</p></div>
+<div class="paragraph"><p>The <em>ZMQ_IDENTITY</em> option shall set the identity of the specified <em>socket</em>
+when connecting to a ROUTER socket. The identity should be from 1 to 255
+bytes long and MAY NOT start with binary zero.</p></div>
+<div class="paragraph"><p>If two clients use the same identity when connecting to a ROUTER, the
+ROUTER socket shall accept only the first such client and reject the
+others.</p></div>
 <div class="hdlist"><table>
 <tr>
 <td class="hdlist1">
@@ -1111,7 +1114,7 @@ Applicable socket types
 </td>
 <td class="hdlist2">
 <p style="margin-top: 0;">
-all
+ZMQ_REQ, ZMQ_REP, ZMQ_ROUTER, ZMQ_DEALER.
 </p>
 </td>
 </tr>
@@ -1807,10 +1810,62 @@ all
 </table></div>
 </div>
 <div class="sect2">
-<h3 id="_zmq_ipv4only_use_ipv4_only_sockets">ZMQ_IPV4ONLY: Use IPv4-only sockets</h3>
-<div class="paragraph"><p>Sets the underlying native socket type.  A value of <tt>1</tt> will use IPv4 sockets,
-while the value of <tt>0</tt> will use IPv6 sockets. An IPv6 socket lets
-applications connect to and accept connections from both IPv4 and IPv6 hosts.</p></div>
+<h3 id="_zmq_ipv6_enable_ipv6_on_socket">ZMQ_IPV6: Enable IPv6 on socket</h3>
+<div class="paragraph"><p>Set the IPv6 option for the socket. A value of <tt>1</tt> means IPv6 is
+enabled on the socket, while <tt>0</tt> means the socket will use only IPv4.
+When IPv6 is enabled the socket will connect to, or accept connections
+from, both IPv4 and IPv6 hosts.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+int
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+boolean
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+0 (false)
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all, when using TCP transports.
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_ipv4only_use_ipv4_only_on_socket">ZMQ_IPV4ONLY: Use IPv4-only on socket</h3>
+<div class="paragraph"><p>Set the IPv4-only option for the socket. This option is deprecated.
+Please use the ZMQ_IPV6 option.</p></div>
 <div class="hdlist"><table>
 <tr>
 <td class="hdlist1">
@@ -1859,10 +1914,13 @@ all, when using TCP transports.
 </table></div>
 </div>
 <div class="sect2">
-<h3 id="_zmq_delay_attach_on_connect_accept_messages_only_when_connections_are_made">ZMQ_DELAY_ATTACH_ON_CONNECT: Accept messages only when connections are made</h3>
-<div class="paragraph"><p>If set to <tt>1</tt>, will delay the attachment of a pipe on connect until the underlying
-connection has completed. This will cause the socket to block if there are no other
-connections, but will prevent queues from filling on pipes awaiting connection.</p></div>
+<h3 id="_zmq_immediate_queue_messages_only_to_completed_connections">ZMQ_IMMEDIATE: Queue messages only to completed connections</h3>
+<div class="paragraph"><p>By default queues will fill on outgoing connections even if the connection has
+not completed. This can lead to "lost" messages on sockets with round-robin
+routing (REQ, PUSH, DEALER). If this option is set to <tt>1</tt>, messages shall be
+queued only to completed connections. This will cause the socket to block if
+there are no other connections, but will prevent queues from filling on pipes
+awaiting connection.</p></div>
 <div class="hdlist"><table>
 <tr>
 <td class="hdlist1">
@@ -1912,7 +1970,7 @@ all, only for connection-oriented transports.
 </div>
 <div class="sect2">
 <h3 id="_zmq_router_mandatory_accept_only_routable_messages_on_router_sockets">ZMQ_ROUTER_MANDATORY: accept only routable messages on ROUTER sockets</h3>
-<div class="paragraph"><p>Sets the <em>ROUTER</em> socket behavior when an unroutable message is encountered. A
+<div class="paragraph"><p>Sets the ROUTER socket behavior when an unroutable message is encountered. A
 value of <tt>0</tt> is the default and discards the message silently when it cannot be
 routed.  A value of <tt>1</tt> returns an <em>EHOSTUNREACH</em> error code if the message
 cannot be routed.</p></div>
@@ -1958,6 +2016,132 @@ Applicable socket types
 <td class="hdlist2">
 <p style="margin-top: 0;">
 ZMQ_ROUTER
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_router_raw_switch_router_socket_to_raw_mode">ZMQ_ROUTER_RAW: switch ROUTER socket to raw mode</h3>
+<div class="paragraph"><p>Sets the raw mode on the ROUTER, when set to 1. When the ROUTER socket is in
+raw mode, and when using the tcp:// transport, it will read and write TCP data
+without ØMQ framing. This lets ØMQ applications talk to non-ØMQ applications.
+When using raw mode, you cannot set explicit identities, and the ZMQ_MSGMORE
+flag is ignored when sending data messages. In raw mode you can close a specific
+connection by sending it a zero-length message (following the identity frame).</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">This option is deprecated, please use ZMQ_STREAM sockets instead.</td>
+</tr></table>
+</div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+int
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+0, 1
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+0
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+ZMQ_ROUTER
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_probe_router_bootstrap_connections_to_router_sockets">ZMQ_PROBE_ROUTER: bootstrap connections to ROUTER sockets</h3>
+<div class="paragraph"><p>When set to 1, the socket will automatically send an empty message when a
+new connection is made or accepted. You may set this on REQ, DEALER, or
+ROUTER sockets connected to a ROUTER socket. The application must filter
+such empty messages. The ZMQ_PROBE_ROUTER option in effect provides the
+ROUTER application with an event signaling the arrival of a new peer.</p></div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">do not set this option on a socket that talks to any other socket
+types: the results are undefined.</td>
+</tr></table>
+</div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+int
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+0, 1
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+0
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+ZMQ_ROUTER, ZMQ_DEALER, ZMQ_REQ
 </p>
 </td>
 </tr>
@@ -2016,8 +2200,122 @@ ZMQ_XPUB
 </table></div>
 </div>
 <div class="sect2">
+<h3 id="_zmq_req_correlate_match_replies_with_requests">ZMQ_REQ_CORRELATE: match replies with requests</h3>
+<div class="paragraph"><p>The default behavior of REQ sockets is to rely on the ordering of messages to
+match requests and responses and that is usually sufficient. When this option
+is set to 1, the REQ socket will prefix outgoing messages with an extra frame
+containing a request id. That means the full message is (request id, 0,
+user frames&#8230;). The REQ socket will discard all incoming messages that don&#8217;t
+begin with these two frames.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+int
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+0, 1
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+0
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+ZMQ_REQ
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_req_relaxed_relax_strict_alternation_between_request_and_reply">ZMQ_REQ_RELAXED: relax strict alternation between request and reply</h3>
+<div class="paragraph"><p>By default, a REQ socket does not allow initiating a new request with
+<em>zmq_send(3)</em> until the reply to the previous one has been received.
+When set to 1, sending another message is allowed and has the effect of
+disconnecting the underlying connection to the peer from which the reply was
+expected, triggering a reconnection attempt on transports that support it.
+The request-reply state machine is reset and a new request is sent to the
+next available peer.</p></div>
+<div class="paragraph"><p>If set to 1, also enable ZMQ_REQ_CORRELATE to ensure correct matching of
+requests and replies. Otherwise a late reply to an aborted request can be
+reported as the reply to the superseding request.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+int
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+0, 1
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+0
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+ZMQ_REQ
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
 <h3 id="_zmq_tcp_keepalive_override_so_keepalive_socket_option">ZMQ_TCP_KEEPALIVE: Override SO_KEEPALIVE socket option</h3>
-<div class="paragraph"><p>Override <em>SO_KEEPALIVE</em> socket option(where supported by OS).
+<div class="paragraph"><p>Override <em>SO_KEEPALIVE</em> socket option (where supported by OS).
 The default value of <tt>-1</tt> means to skip any overrides and leave it to OS default.</p></div>
 <div class="hdlist"><table>
 <tr>
@@ -2067,9 +2365,10 @@ all, when using TCP transports.
 </table></div>
 </div>
 <div class="sect2">
-<h3 id="_zmq_tcp_keepalive_idle_override_tcp_keepcnt_or_tcp_keepalive_on_some_os">ZMQ_TCP_KEEPALIVE_IDLE: Override TCP_KEEPCNT(or TCP_KEEPALIVE on some OS)</h3>
-<div class="paragraph"><p>Override <em>TCP_KEEPCNT</em>(or <em>TCP_KEEPALIVE</em> on some OS) socket option(where supported by OS).
-The default value of <tt>-1</tt> means to skip any overrides and leave it to OS default.</p></div>
+<h3 id="_zmq_tcp_keepalive_idle_override_tcp_keepcnt_or_tcp_keepalive_on_some_os">ZMQ_TCP_KEEPALIVE_IDLE: Override TCP_KEEPCNT (or TCP_KEEPALIVE on some OS)</h3>
+<div class="paragraph"><p>Override <em>TCP_KEEPCNT</em>(or <em>TCP_KEEPALIVE</em> on some OS) socket option (where
+supported by OS). The default value of <tt>-1</tt> means to skip any overrides and
+leave it to OS default.</p></div>
 <div class="hdlist"><table>
 <tr>
 <td class="hdlist1">
@@ -2119,8 +2418,8 @@ all, when using TCP transports.
 </div>
 <div class="sect2">
 <h3 id="_zmq_tcp_keepalive_cnt_override_tcp_keepcnt_socket_option">ZMQ_TCP_KEEPALIVE_CNT: Override TCP_KEEPCNT socket option</h3>
-<div class="paragraph"><p>Override <em>TCP_KEEPCNT</em> socket option(where supported by OS).
-The default value of <tt>-1</tt> means to skip any overrides and leave it to OS default.</p></div>
+<div class="paragraph"><p>Override <em>TCP_KEEPCNT</em> socket option (where supported by OS). The default
+value of <tt>-1</tt> means to skip any overrides and leave it to OS default.</p></div>
 <div class="hdlist"><table>
 <tr>
 <td class="hdlist1">
@@ -2170,8 +2469,8 @@ all, when using TCP transports.
 </div>
 <div class="sect2">
 <h3 id="_zmq_tcp_keepalive_intvl_override_tcp_keepintvl_socket_option">ZMQ_TCP_KEEPALIVE_INTVL: Override TCP_KEEPINTVL socket option</h3>
-<div class="paragraph"><p>Override <em>TCP_KEEPINTVL</em> socket option(where supported by OS).
-The default value of <tt>-1</tt> means to skip any overrides and leave it to OS default.</p></div>
+<div class="paragraph"><p>Override <em>TCP_KEEPINTVL</em> socket option(where supported by OS). The default
+value of <tt>-1</tt> means to skip any overrides and leave it to OS default.</p></div>
 <div class="hdlist"><table>
 <tr>
 <td class="hdlist1">
@@ -2221,11 +2520,11 @@ all, when using TCP transports.
 </div>
 <div class="sect2">
 <h3 id="_zmq_tcp_accept_filter_assign_filters_to_allow_new_tcp_connections">ZMQ_TCP_ACCEPT_FILTER: Assign filters to allow new TCP connections</h3>
-<div class="paragraph"><p>Assign arbitrary number of filters that will be applied for each new TCP transport
-connection on a listening socket.
-If no filters applied, then TCP transport allows connections from any ip.
-If at least one filter is applied then new connection source ip should be matched.
-To clear all filters call zmq_setsockopt(socket, ZMQ_TCP_ACCEPT_FILTER, NULL, 0).
+<div class="paragraph"><p>Assign an arbitrary number of filters that will be applied for each new TCP
+transport connection on a listening socket. If no filters are applied, then
+the TCP transport allows connections from any IP address. If at least one
+filter is applied then new connection source ip should be matched. To clear
+all filters call zmq_setsockopt(socket, ZMQ_TCP_ACCEPT_FILTER, NULL, 0).
 Filter is a null-terminated string with ipv6 or ipv4 CIDR.</p></div>
 <div class="hdlist"><table>
 <tr>
@@ -2269,6 +2568,493 @@ Applicable socket types
 <td class="hdlist2">
 <p style="margin-top: 0;">
 all listening sockets, when using TCP transports.
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_plain_server_set_plain_server_role">ZMQ_PLAIN_SERVER: Set PLAIN server role</h3>
+<div class="paragraph"><p>Defines whether the socket will act as server for PLAIN security, see
+<a href="zmq_plain.html">zmq_plain(7)</a>. A value of <em>1</em> means the socket will act as
+PLAIN server. A value of <em>0</em> means the socket will not act as PLAIN
+server, and its security role then depends on other option settings.
+Setting this to <em>0</em> shall reset the socket security to NULL.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+int
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+0, 1
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+0
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all, when using TCP transport
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_plain_username_set_plain_security_username">ZMQ_PLAIN_USERNAME: Set PLAIN security username</h3>
+<div class="paragraph"><p>Sets the username for outgoing connections over TCP or IPC. If you set this
+to a non-null value, the security mechanism used for connections shall be
+PLAIN, see <a href="zmq_plain.html">zmq_plain(7)</a>. If you set this to a null value, the security
+mechanism used for connections shall be NULL, see <a href="zmq_null.html">zmq_null(3)</a>.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+character string
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+N/A
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+not set
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all, when using TCP transport
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_plain_password_set_plain_security_password">ZMQ_PLAIN_PASSWORD: Set PLAIN security password</h3>
+<div class="paragraph"><p>Sets the password for outgoing connections over TCP or IPC. If you set this
+to a non-null value, the security mechanism used for connections shall be
+PLAIN, see <a href="zmq_plain.html">zmq_plain(7)</a>. If you set this to a null value, the security
+mechanism used for connections shall be NULL, see <a href="zmq_null.html">zmq_null(3)</a>.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+character string
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+N/A
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+not set
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all, when using TCP transport
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_curve_server_set_curve_server_role">ZMQ_CURVE_SERVER: Set CURVE server role</h3>
+<div class="paragraph"><p>Defines whether the socket will act as server for CURVE security, see
+<a href="zmq_curve.html">zmq_curve(7)</a>. A value of <em>1</em> means the socket will act as
+CURVE server. A value of <em>0</em> means the socket will not act as CURVE
+server, and its security role then depends on other option settings.
+Setting this to <em>0</em> shall reset the socket security to NULL. When you
+set this you must also set the server&#8217;s secret key using the
+ZMQ_CURVE_SECRETKEY option. A server socket does not need to know
+its own public key.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+int
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+0, 1
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+0
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all, when using TCP transport
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_curve_publickey_set_curve_public_key">ZMQ_CURVE_PUBLICKEY: Set CURVE public key</h3>
+<div class="paragraph"><p>Sets the socket&#8217;s long term public key. You must set this on CURVE client
+sockets, see <a href="zmq_curve.html">zmq_curve(7)</a>. You can provide the key as 32 binary
+bytes, or as a 40-character string encoded in the Z85 encoding format.
+The public key must always be used with the matching secret key. To
+generate a public/secret key pair, use <a href="zmq_curve_keypair.html">zmq_curve_keypair(3)</a>.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+binary data or Z85 text string
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value size
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+32 or 40
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+NULL
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all, when using TCP transport
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_curve_secretkey_set_curve_secret_key">ZMQ_CURVE_SECRETKEY: Set CURVE secret key</h3>
+<div class="paragraph"><p>Sets the socket&#8217;s long term secret key. You must set this on both CURVE
+client and server sockets, see <a href="zmq_curve.html">zmq_curve(7)</a>. You can provide the
+key as 32 binary bytes, or as a 40-character string encoded in the Z85
+encoding format. To generate a public/secret key pair, use
+<a href="zmq_curve_keypair.html">zmq_curve_keypair(3)</a>.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+binary data or Z85 text string
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value size
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+32 or 40
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+NULL
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all, when using TCP transport
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_curve_serverkey_set_curve_server_key">ZMQ_CURVE_SERVERKEY: Set CURVE server key</h3>
+<div class="paragraph"><p>Sets the socket&#8217;s long term server key. You must set this on CURVE client
+sockets, see <a href="zmq_curve.html">zmq_curve(7)</a>. You can provide the key as 32 binary
+bytes, or as a 40-character string encoded in the Z85 encoding format.
+This key must have been generated together with the server&#8217;s secret key.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+binary data or Z85 text string
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value size
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+32 or 40
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+NULL
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all, when using TCP transport
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_zap_domain_set_rfc_27_authentication_domain">ZMQ_ZAP_DOMAIN: Set RFC 27 authentication domain</h3>
+<div class="paragraph"><p>Sets the domain for ZAP (ZMQ RFC 27) authentication. For NULL security (the
+default on all tcp:// connections), ZAP authentication only happens if you
+set a non-empty domain. For PLAIN and CURVE security, ZAP requests are always
+made, if there is a ZAP handler present. See <a href="http://rfc.zeromq.org/spec:27">http://rfc.zeromq.org/spec:27</a>
+for more details.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+character string
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+N/A
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+not set
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+all, when using TCP transport
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_conflate_keep_only_last_message">ZMQ_CONFLATE: Keep only last message</h3>
+<div class="paragraph"><p>If set, a socket shall keep only one message in its inbound/outbound
+queue, this message being the last message received/the last message
+to be sent.
+Ignores <em>ZMQ_RECVHWM</em> and <em>ZMQ_SENDHWM</em> options.
+Does not supports multi-part messages, in particular, only one part of it
+is kept in the socket internal queue.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Option value type
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+int
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Option value unit
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+boolean
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+0 (false)
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Applicable socket types
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+ZMQ_PULL, ZMQ_PUSH, ZMQ_SUB, ZMQ_PUB, ZMQ_DEALER
 </p>
 </td>
 </tr>
@@ -2341,13 +3127,13 @@ rc = zmq_setsockopt (socket, ZMQ_SUBSCRIBE, "ANIMALS.CATS", 12);</tt></pre>
 <pre><tt>int64_t affinity;
 /* Incoming connections on TCP port 5555 shall be handled by I/O thread 1 */
 affinity = 1;
-rc = zmq_setsockopt (socket, ZMQ_AFFINITY, &amp;affinity, sizeof affinity);
+rc = zmq_setsockopt (socket, ZMQ_AFFINITY, &amp;affinity, sizeof (affinity));
 assert (rc);
 rc = zmq_bind (socket, "tcp://lo:5555");
 assert (rc);
 /* Incoming connections on TCP port 5556 shall be handled by I/O thread 2 */
 affinity = 2;
-rc = zmq_setsockopt (socket, ZMQ_AFFINITY, &amp;affinity, sizeof affinity);
+rc = zmq_setsockopt (socket, ZMQ_AFFINITY, &amp;affinity, sizeof (affinity));
 assert (rc);
 rc = zmq_bind (socket, "tcp://lo:5556");
 assert (rc);</tt></pre>
@@ -2359,22 +3145,24 @@ assert (rc);</tt></pre>
 <div class="sectionbody">
 <div class="paragraph"><p><a href="zmq_getsockopt.html">zmq_getsockopt(3)</a>
 <a href="zmq_socket.html">zmq_socket(3)</a>
+<a href="zmq_plain.html">zmq_plain(7)</a>
+<a href="zmq_curve.html">zmq_curve(7)</a>
 <a href="zmq.html">zmq(7)</a></p></div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_authors">AUTHORS</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>This ØMQ manual page was written by Martin Sustrik &lt;<a href="mailto:sustrik@250bpm.com">sustrik@250bpm.com</a>&gt; and
-Martin Lucina &lt;<a href="mailto:mato@kotelna.sk">mato@kotelna.sk</a>&gt;.</p></div>
+<div class="paragraph"><p>This page was written by the ØMQ community. To make a change please
+read the ØMQ Contribution Policy at <a href="http://www.zeromq.org/docs:contributing">http://www.zeromq.org/docs:contributing</a>.</p></div>
 </div>
 </div>
 </div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-ØMQ 3.2.2<br />
-Last updated 2012-11-23 16:54:28 KST
+ØMQ 4.0.4<br />
+Last updated 2014-03-10 22:20:14 CET
 </div>
 </div>
 </body>

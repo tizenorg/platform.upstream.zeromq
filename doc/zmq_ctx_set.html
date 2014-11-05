@@ -797,6 +797,27 @@ Default value
 </tr>
 </table></div>
 </div>
+<div class="sect2">
+<h3 id="_zmq_ipv6_set_ipv6_option">ZMQ_IPV6: Set IPv6 option</h3>
+<div class="paragraph"><p>The <em>ZMQ_IPV6</em> argument sets the IPv6 value for all sockets created in
+the context from this point onwards. A value of <tt>1</tt> means IPv6 is
+enabled, while <tt>0</tt> means the socket will use only IPv4. When IPv6 is
+enabled, a socket will connect to, or accept connections from, both
+IPv4 and IPv6 hosts.</p></div>
+<div class="hdlist"><table>
+<tr>
+<td class="hdlist1">
+Default value
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+0
+</p>
+</td>
+</tr>
+</table></div>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -844,15 +865,16 @@ assert (max_sockets == 256);</tt></pre>
 <div class="sect1">
 <h2 id="_authors">AUTHORS</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>This ØMQ manual page was written by Pieter Hintjens &lt;<a href="mailto:ph@imatix.com">ph@imatix.com</a>&gt;</p></div>
+<div class="paragraph"><p>This page was written by the ØMQ community. To make a change please
+read the ØMQ Contribution Policy at <a href="http://www.zeromq.org/docs:contributing">http://www.zeromq.org/docs:contributing</a>.</p></div>
 </div>
 </div>
 </div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-ØMQ 3.2.2<br />
-Last updated 2012-10-25 17:30:40 KST
+ØMQ 4.0.4<br />
+Last updated 2013-11-13 18:57:50 CET
 </div>
 </div>
 </body>

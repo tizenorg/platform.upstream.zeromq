@@ -1,7 +1,5 @@
 /*
-    Copyright (c) 2010-2011 250bpm s.r.o.
-    Copyright (c) 2011 iMatix Corporation
-    Copyright (c) 2010-2011 Other contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2013 Contributors as noted in the AUTHORS file
 
     This file is part of 0MQ.
 
@@ -19,19 +17,13 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../include/zmq.h"
-#include <pthread.h>
-#include <stddef.h>
-#include <stdio.h>
-
-#undef NDEBUG
-#include <assert.h>
+#include "testutil.hpp"
 
 #define THREAD_COUNT 100
 
 extern "C"
 {
-    static void *worker (void *s)
+    static void worker (void *s)
     {
         int rc;
 
@@ -41,28 +33,25 @@ extern "C"
         //  Start closing the socket while the connecting process is underway.
         rc = zmq_close (s);
         assert (rc == 0);
-
-        return NULL;
     }
 }
 
 int main (void)
 {
-    void *ctx;
+    setup_test_environment();
     void *s1;
     void *s2;
     int i;
     int j;
     int rc;
-    pthread_t threads [THREAD_COUNT];
-
-    fprintf (stderr, "test_shutdown_stress running...\n");
+    void* threads [THREAD_COUNT];
 
     for (j = 0; j != 10; j++) {
 
         //  Check the shutdown with many parallel I/O threads.
-        ctx = zmq_init (7);
+        void *ctx = zmq_ctx_new ();
         assert (ctx);
+        zmq_ctx_set (ctx, ZMQ_IO_THREADS, 7);
 
         s1 = zmq_socket (ctx, ZMQ_PUB);
         assert (s1);
@@ -73,19 +62,17 @@ int main (void)
         for (i = 0; i != THREAD_COUNT; i++) {
             s2 = zmq_socket (ctx, ZMQ_SUB);
             assert (s2);
-            rc = pthread_create (&threads [i], NULL, worker, s2);
-            assert (rc == 0);
+            threads [i] = zmq_threadstart(&worker, s2);
         }
 
         for (i = 0; i != THREAD_COUNT; i++) {
-            rc = pthread_join (threads [i], NULL);
-            assert (rc == 0);
+            zmq_threadclose(threads [i]);
         }
 
         rc = zmq_close (s1);
         assert (rc == 0);
 
-        rc = zmq_term (ctx);
+        rc = zmq_ctx_term (ctx);
         assert (rc == 0);
     }
 

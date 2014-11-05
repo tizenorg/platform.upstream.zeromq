@@ -2,12 +2,12 @@
 .\"     Title: zmq_socket
 .\"    Author: [see the "AUTHORS" section]
 .\" Generator: DocBook XSL Stylesheets v1.76.1 <http://docbook.sf.net/>
-.\"      Date: 11/23/2012
+.\"      Date: 03/10/2014
 .\"    Manual: 0MQ Manual
-.\"    Source: 0MQ 3.2.2
+.\"    Source: 0MQ 4.0.4
 .\"  Language: English
 .\"
-.TH "ZMQ_SOCKET" "3" "11/23/2012" "0MQ 3\&.2\&.2" "0MQ Manual"
+.TH "ZMQ_SOCKET" "3" "03/10/2014" "0MQ 4\&.0\&.4" "0MQ Manual"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -61,6 +61,8 @@ which is built from related socket types\&.
 .sp
 The request\-reply pattern is used for sending requests from a ZMQ_REQ \fIclient\fR to one or more ZMQ_REP \fIservices\fR, and receiving subsequent replies to each request sent\&.
 .sp
+The request\-reply pattern is formally defined by \m[blue]\fBhttp://rfc\&.zeromq\&.org/spec:28\fR\m[]\&.
+.sp
 .it 1 an-trap
 .nr an-no-space-flag 1
 .nr an-break-flag 1
@@ -71,7 +73,7 @@ The request\-reply pattern is used for sending requests from a ZMQ_REQ \fIclient
 .sp
 A socket of type \fIZMQ_REQ\fR is used by a \fIclient\fR to send requests to and receive replies from a \fIservice\fR\&. This socket type allows only an alternating sequence of \fIzmq_send(request)\fR and subsequent \fIzmq_recv(reply)\fR calls\&. Each request sent is round\-robined among all \fIservices\fR, and each reply received is matched with the last issued request\&.
 .sp
-When a \fIZMQ_REQ\fR socket enters the \fImute\fR state due to having reached the high water mark for all \fIservices\fR, or if there are no \fIservices\fR at all, then any \fBzmq_send\fR(3) operations on the socket shall block until the \fImute\fR state ends or at least one \fIservice\fR becomes available for sending; messages are not discarded\&.
+If no services are available, then any send operation on the socket shall block until at least one \fIservice\fR becomes available\&. The REQ socket shall not discard messages\&.
 .sp
 .it 1 an-trap
 .nr an-no-space-flag 1
@@ -140,9 +142,7 @@ T}
 \fBZMQ_REP\fR
 .RS 4
 .sp
-A socket of type \fIZMQ_REP\fR is used by a \fIservice\fR to receive requests from and send replies to a \fIclient\fR\&. This socket type allows only an alternating sequence of \fIzmq_recv(request)\fR and subsequent \fIzmq_send(reply)\fR calls\&. Each request received is fair\-queued from among all \fIclients\fR, and each reply sent is routed to the \fIclient\fR that issued the last request\&. If the original requester doesn\(cqt exist any more the reply is silently discarded\&.
-.sp
-When a \fIZMQ_REP\fR socket enters the \fImute\fR state due to having reached the high water mark for a \fIclient\fR, then any replies sent to the \fIclient\fR in question shall be dropped until the mute state ends\&.
+A socket of type \fIZMQ_REP\fR is used by a \fIservice\fR to receive requests from and send replies to a \fIclient\fR\&. This socket type allows only an alternating sequence of \fIzmq_recv(request)\fR and subsequent \fIzmq_send(reply)\fR calls\&. Each request received is fair\-queued from among all \fIclients\fR, and each reply sent is routed to the \fIclient\fR that issued the last request\&. If the original requester does not exist any more the reply is silently discarded\&.
 .sp
 .it 1 an-trap
 .nr an-no-space-flag 1
@@ -151,7 +151,6 @@ When a \fIZMQ_REP\fR socket enters the \fImute\fR state due to having reached th
 .B Table\ \&2.\ \&Summary of ZMQ_REP characteristics
 .TS
 tab(:);
-lt lt
 lt lt
 lt lt
 lt lt
@@ -192,13 +191,6 @@ T}:T{
 .sp
 Last peer
 T}
-T{
-.sp
-Action in mute state
-T}:T{
-.sp
-Drop
-T}
 .TE
 .sp 1
 .RE
@@ -216,8 +208,6 @@ A socket of type \fIZMQ_DEALER\fR is an advanced pattern used for extending requ
 When a \fIZMQ_DEALER\fR socket enters the \fImute\fR state due to having reached the high water mark for all peers, or if there are no peers at all, then any \fBzmq_send\fR(3) operations on the socket shall block until the mute state ends or at least one peer becomes available for sending; messages are not discarded\&.
 .sp
 When a \fIZMQ_DEALER\fR socket is connected to a \fIZMQ_REP\fR socket each message sent must consist of an empty message part, the \fIdelimiter\fR, followed by one or more \fIbody parts\fR\&.
-.sp
-Deprecated alias: \fIZMQ_XREQ\fR\&.
 .sp
 .it 1 an-trap
 .nr an-no-space-flag 1
@@ -286,13 +276,11 @@ T}
 \fBZMQ_ROUTER\fR
 .RS 4
 .sp
-A socket of type \fIZMQ_ROUTER\fR is an advanced socket type used for extending request/reply sockets\&. When receiving messages a \fIZMQ_ROUTER\fR socket shall prepend a message part containing the \fIidentity\fR of the originating peer to the message before passing it to the application\&. Messages received are fair\-queued from among all connected peers\&. When sending messages a \fIZMQ_ROUTER\fR socket shall remove the first part of the message and use it to determine the \fIidentity\fR of the peer the message shall be routed to\&. If the peer does not exist anymore the message shall be silently discarded by default, unless \fIZMQ_ROUTER_BEHAVIOR\fR socket option is set to \fI1\fR\&.
+A socket of type \fIZMQ_ROUTER\fR is an advanced socket type used for extending request/reply sockets\&. When receiving messages a \fIZMQ_ROUTER\fR socket shall prepend a message part containing the \fIidentity\fR of the originating peer to the message before passing it to the application\&. Messages received are fair\-queued from among all connected peers\&. When sending messages a \fIZMQ_ROUTER\fR socket shall remove the first part of the message and use it to determine the \fIidentity\fR of the peer the message shall be routed to\&. If the peer does not exist anymore the message shall be silently discarded by default, unless \fIZMQ_ROUTER_MANDATORY\fR socket option is set to \fI1\fR\&.
 .sp
 When a \fIZMQ_ROUTER\fR socket enters the \fImute\fR state due to having reached the high water mark for all peers, then any messages sent to the socket shall be dropped until the mute state ends\&. Likewise, any messages routed to a peer for which the individual high water mark has been reached shall also be dropped\&.
 .sp
 When a \fIZMQ_REQ\fR socket is connected to a \fIZMQ_ROUTER\fR socket, in addition to the \fIidentity\fR of the originating peer each message received shall contain an empty \fIdelimiter\fR message part\&. Hence, the entire structure of each received message as seen by the application becomes: one or more \fIidentity\fR parts, \fIdelimiter\fR part, one or more \fIbody parts\fR\&. When sending replies to a \fIZMQ_REQ\fR socket the application must include the \fIdelimiter\fR part\&.
-.sp
-Deprecated alias: \fIZMQ_XREP\fR\&.
 .sp
 .it 1 an-trap
 .nr an-no-space-flag 1
@@ -355,6 +343,8 @@ T}
 .SS "Publish\-subscribe pattern"
 .sp
 The publish\-subscribe pattern is used for one\-to\-many distribution of data from a single \fIpublisher\fR to multiple \fIsubscribers\fR in a fan out fashion\&.
+.sp
+The publish\-subscribe pattern is formally defined by \m[blue]\fBhttp://rfc\&.zeromq\&.org/spec:29\fR\m[]\&.
 .sp
 .it 1 an-trap
 .nr an-no-space-flag 1
@@ -448,7 +438,6 @@ lt lt
 lt lt
 lt lt
 lt lt
-lt lt
 lt lt.
 T{
 .sp
@@ -485,13 +474,6 @@ T}:T{
 .sp
 N/A
 T}
-T{
-.sp
-Action in mute state
-T}:T{
-.sp
-Drop
-T}
 .TE
 .sp 1
 .RE
@@ -504,7 +486,7 @@ T}
 \fBZMQ_XPUB\fR
 .RS 4
 .sp
-Same as ZMQ_PUB except that you can receive subscriptions from the peers in form of incoming messages\&. Subscription message is a byte 1 (for subscriptions) or byte 0 (for unsubscriptions) followed by the subscription body\&.
+Same as ZMQ_PUB except that you can receive subscriptions from the peers in form of incoming messages\&. Subscription message is a byte 1 (for subscriptions) or byte 0 (for unsubscriptions) followed by the subscription body\&. Messages without a sub/unsub prefix are also received, but have no effect on subscription status\&.
 .sp
 .it 1 an-trap
 .nr an-no-space-flag 1
@@ -573,7 +555,7 @@ T}
 \fBZMQ_XSUB\fR
 .RS 4
 .sp
-Same as ZMQ_SUB except that you subscribe by sending subscription messages to the socket\&. Subscription message is a byte 1 (for subscriptions) or byte 0 (for unsubscriptions) followed by the subscription body\&.
+Same as ZMQ_SUB except that you subscribe by sending subscription messages to the socket\&. Subscription message is a byte 1 (for subscriptions) or byte 0 (for unsubscriptions) followed by the subscription body\&. Messages without a sub/unsub prefix may also be sent, but have no effect on subscription status\&.
 .sp
 .it 1 an-trap
 .nr an-no-space-flag 1
@@ -636,6 +618,8 @@ T}
 .SS "Pipeline pattern"
 .sp
 The pipeline pattern is used for distributing data to \fInodes\fR arranged in a pipeline\&. Data always flows down the pipeline, and each stage of the pipeline is connected to at least one \fInode\fR\&. When a pipeline stage is connected to multiple \fInodes\fR data is round\-robined among all connected \fInodes\fR\&.
+.sp
+The pipeline pattern is formally defined by \m[blue]\fBhttp://rfc\&.zeromq\&.org/spec:30\fR\m[]\&.
 .sp
 .it 1 an-trap
 .nr an-no-space-flag 1
@@ -780,6 +764,8 @@ T}
 .sp
 The exclusive pair pattern is used to connect a peer to precisely one other peer\&. This pattern is used for inter\-thread communication across the inproc transport\&.
 .sp
+The exclusive pair pattern is formally defined by \m[blue]\fBhttp://rfc\&.zeromq\&.org/spec:31\fR\m[]\&.
+.sp
 .it 1 an-trap
 .nr an-no-space-flag 1
 .nr an-break-flag 1
@@ -866,6 +852,90 @@ T}
 .TE
 .sp 1
 .RE
+.SS "Native Pattern"
+.sp
+The native pattern is used for communicating with TCP peers and allows asynchronous requests and replies in either direction\&.
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.ps +1
+\fBZMQ_STREAM\fR
+.RS 4
+.sp
+A socket of type \fIZMQ_STREAM\fR is used to send and receive TCP data from a non\-0MQ peer, when using the tcp:// transport\&. A \fIZMQ_STREAM\fR socket can act as client and/or server, sending and/or receiving TCP data asynchronously\&.
+.sp
+When receiving TCP data, a \fIZMQ_STREAM\fR socket shall prepend a message part containing the \fIidentity\fR of the originating peer to the message before passing it to the application\&. Messages received are fair\-queued from among all connected peers\&.
+.sp
+When sending TCP data, a \fIZMQ_STREAM\fR socket shall remove the first part of the message and use it to determine the \fIidentity\fR of the peer the message shall be routed to, and unroutable messages shall cause an EHOSTUNREACH or EAGAIN error\&.
+.sp
+To open a connection to a server, use the zmq_connect call, and then fetch the socket identity using the ZMQ_IDENTITY zmq_getsockopt call\&.
+.sp
+To close a specific client connection, as a server, send the identity frame followed by a zero\-length message (see EXAMPLE section)\&.
+.sp
+The ZMQ_MSGMORE flag is ignored on data frames\&. You must send one identity frame followed by one data frame\&.
+.sp
+Also, please note that omitting the ZMQ_MSGMORE flag will prevent sending further data (from any client) on the same socket\&.
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table\ \&12.\ \&Summary of ZMQ_STREAM characteristics
+.TS
+tab(:);
+lt lt
+lt lt
+lt lt
+lt lt
+lt lt
+lt lt.
+T{
+.sp
+Compatible peer sockets
+T}:T{
+.sp
+none\&.
+T}
+T{
+.sp
+Direction
+T}:T{
+.sp
+Bidirectional
+T}
+T{
+.sp
+Send/receive pattern
+T}:T{
+.sp
+Unrestricted
+T}
+T{
+.sp
+Outgoing routing strategy
+T}:T{
+.sp
+See text
+T}
+T{
+.sp
+Incoming routing strategy
+T}:T{
+.sp
+Fair\-queued
+T}
+T{
+.sp
+Action in mute state
+T}:T{
+.sp
+EAGAIN
+T}
+.TE
+.sp 1
+.RE
 .SH "RETURN VALUE"
 .sp
 The \fIzmq_socket()\fR function shall return an opaque handle to the newly created socket if successful\&. Otherwise, it shall return NULL and set \fIerrno\fR to one of the values defined below\&.
@@ -894,25 +964,53 @@ The limit on the total number of open 0MQ sockets has been reached\&.
 .RS 4
 The context specified was terminated\&.
 .RE
+.SH "EXAMPLE"
+.PP
+\fBCreating a simple HTTP server using ZMQ_STREAM\fR. 
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+void *ctx = zmq_ctx_new ();
+assert (ctx);
+/* Create ZMQ_STREAM socket */
+void *socket = zmq_socket (ctx, ZMQ_STREAM);
+assert (socket);
+int rc = zmq_bind (socket, "tcp://*:8080");
+assert (rc == 0);
+/* Data structure to hold the ZMQ_STREAM ID */
+uint8_t id [256];
+size_t id_size = 256;
+while (1) {
+        /*  Get HTTP request; ID frame and then request */
+        id_size = zmq_recv (server, id, 256, 0);
+        assert (id_size > 0);
+        /* Prepares the response */
+        char http_response [] =
+                "HTTP/1\&.0 200 OK\er\en"
+                "Content\-Type: text/plain\er\en"
+                "\er\en"
+                "Hello, World!";
+        /* Sends the ID frame followed by the response */
+        zmq_send (socket, id, id_size, ZMQ_SNDMORE);
+        zmq_send (socket, http_response, strlen (http_response), ZMQ_SNDMORE);
+        /* Closes the connection by sending the ID frame followed by a zero response */
+        zmq_send (socket, id, id_size, ZMQ_SNDMORE);
+        zmq_send (socket, 0, 0, ZMQ_SNDMORE);
+        /* NOTE: If we don\*(Aqt use ZMQ_SNDMORE, then we won\*(Aqt be able to send more */
+        /* message to any client */
+}
+zmq_close (socket);
+zmq_ctx_destroy (ctx);
+.fi
+.if n \{\
+.RE
+.\}
+.sp
 .SH "SEE ALSO"
 .sp
 \fBzmq_init\fR(3) \fBzmq_setsockopt\fR(3) \fBzmq_bind\fR(3) \fBzmq_connect\fR(3) \fBzmq_send\fR(3) \fBzmq_recv\fR(3) \fBzmq_inproc\fR(7) \fBzmq\fR(7)
 .SH "AUTHORS"
 .sp
-This 0MQ manual page was written by Martin Sustrik <\m[blue]\fBsustrik@250bpm\&.com\fR\m[]\&\s-2\u[1]\d\s+2>, Martin Lucina <\m[blue]\fBmato@kotelna\&.sk\fR\m[]\&\s-2\u[2]\d\s+2>, and Pieter Hintjens <\m[blue]\fBph@imatix\&.com\fR\m[]\&\s-2\u[3]\d\s+2>\&.
-.SH "NOTES"
-.IP " 1." 4
-sustrik@250bpm.com
-.RS 4
-\%mailto:sustrik@250bpm.com
-.RE
-.IP " 2." 4
-mato@kotelna.sk
-.RS 4
-\%mailto:mato@kotelna.sk
-.RE
-.IP " 3." 4
-ph@imatix.com
-.RS 4
-\%mailto:ph@imatix.com
-.RE
+This page was written by the 0MQ community\&. To make a change please read the 0MQ Contribution Policy at \m[blue]\fBhttp://www\&.zeromq\&.org/docs:contributing\fR\m[]\&.

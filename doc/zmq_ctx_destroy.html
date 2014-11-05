@@ -741,7 +741,7 @@ zmq_ctx_destroy(3) Manual Page
 <h2>NAME</h2>
 <div class="sectionbody">
 <p>zmq_ctx_destroy -
-   destroy a 0MQ context
+   terminate a 0MQ context
 </p>
 </div>
 </div>
@@ -790,7 +790,7 @@ For each socket within <em>context</em>, all messages sent by the application
 </ol></div>
 <div class="paragraph"><p>For further details regarding socket linger behavior refer to the <em>ZMQ_LINGER</em>
 option in <a href="zmq_setsockopt.html">zmq_setsockopt(3)</a>.</p></div>
-<div class="paragraph"><p>This function replaces the deprecated function <a href="zmq_term.html">zmq_term(3)</a>.</p></div>
+<div class="paragraph"><p>This function is deprecated by <a href="zmq_ctx_term.html">zmq_ctx_term(3)</a>.</p></div>
 </div>
 </div>
 <div class="sect1">
@@ -835,15 +835,16 @@ Termination was interrupted by a signal. It can be restarted if needed.
 <div class="sect1">
 <h2 id="_authors">AUTHORS</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>This ØMQ manual page was written by Pieter Hintjens &lt;<a href="mailto:ph@imatix.com">ph@imatix.com</a>&gt;</p></div>
+<div class="paragraph"><p>This page was written by the ØMQ community. To make a change please
+read the ØMQ Contribution Policy at <a href="http://www.zeromq.org/docs:contributing">http://www.zeromq.org/docs:contributing</a>.</p></div>
 </div>
 </div>
 </div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-ØMQ 3.2.2<br />
-Last updated 2012-10-25 17:30:40 KST
+ØMQ 4.0.4<br />
+Last updated 2013-11-13 18:57:50 CET
 </div>
 </div>
 </body>

@@ -1,7 +1,5 @@
 /*
-    Copyright (c) 2010-2011 250bpm s.r.o.
-    Copyright (c) 2011 iMatix Corporation
-    Copyright (c) 2010-2011 Other contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2013 Contributors as noted in the AUTHORS file
 
     This file is part of 0MQ.
 
@@ -19,14 +17,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdio.h>
 #include "testutil.hpp"
 
 int main (void)
 {
-    fprintf (stderr, "test_pair_tcp running...\n");
-
-    void *ctx = zmq_init (1);
+    setup_test_environment();
+    void *ctx = zmq_ctx_new ();
     assert (ctx);
 
     void *sb = zmq_socket (ctx, ZMQ_PAIR);
@@ -47,7 +43,7 @@ int main (void)
     rc = zmq_close (sb);
     assert (rc == 0);
 
-    rc = zmq_term (ctx);
+    rc = zmq_ctx_term (ctx);
     assert (rc == 0);
 
     return 0 ;

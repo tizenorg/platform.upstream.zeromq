@@ -1,7 +1,5 @@
 /*
-    Copyright (c) 2010-2011 250bpm s.r.o.
-    Copyright (c) 2011 iMatix Corporation
-    Copyright (c) 2010-2011 Other contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2013 Contributors as noted in the AUTHORS file
 
     This file is part of 0MQ.
 
@@ -19,24 +17,17 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../include/zmq.h"
-#include "../include/zmq_utils.h"
-#include <string.h>
-#include <unistd.h>
-
-#undef NDEBUG
-#include <assert.h>
+#include "testutil.hpp"
 
 int main (void)
 {
+    setup_test_environment();
     int rc;
     char buf[32];
     const char *ep = "tcp://127.0.0.1:5560";
 
-    fprintf (stderr, "unbind endpoint test running...\n");
-
     //  Create infrastructure.
-    void *ctx = zmq_init (1);
+    void *ctx = zmq_ctx_new ();
     assert (ctx);
     void *push = zmq_socket (ctx, ZMQ_PUSH);
     assert (push);
@@ -47,38 +38,33 @@ int main (void)
     rc = zmq_connect (pull, ep);
     assert (rc == 0);
 
-    //  Pass one message through to ensure the connection is established.
+    //  Pass one message through to ensure the connection is established
     rc = zmq_send (push, "ABC", 3, 0);
     assert (rc == 3);
     rc = zmq_recv (pull, buf, sizeof (buf), 0);
     assert (rc == 3);
 
-    // Unbind the lisnening endpoint
+    //  Unbind the listening endpoint
     rc = zmq_unbind (push, ep);
     assert (rc == 0);
 
-    // Let events some time
-    zmq_sleep (1);
+    //  Allow unbind to settle
+    msleep (SETTLE_TIME);
 
-    //  Check that sending would block (there's no outbound connection).
+    //  Check that sending would block (there's no outbound connection)
     rc = zmq_send (push, "ABC", 3, ZMQ_DONTWAIT);
     assert (rc == -1 && zmq_errno () == EAGAIN);
 
-    //  Clean up.
+    //  Clean up
     rc = zmq_close (pull);
     assert (rc == 0);
     rc = zmq_close (push);
     assert (rc == 0);
-    rc = zmq_term (ctx);
+    rc = zmq_ctx_term (ctx);
     assert (rc == 0);
 
-
-    //  Now the other way round.
-    fprintf (stderr, "disconnect endpoint test running...\n");
-
-
-    //  Create infrastructure.
-    ctx = zmq_init (1);
+    //  Create infrastructure
+    ctx = zmq_ctx_new ();
     assert (ctx);
     push = zmq_socket (ctx, ZMQ_PUSH);
     assert (push);
@@ -95,12 +81,12 @@ int main (void)
     rc = zmq_recv (pull, buf, sizeof (buf), 0);
     assert (rc == 3);
 
-    // Disconnect the bound endpoint
+    //  Disconnect the bound endpoint
     rc = zmq_disconnect (push, ep);
     assert (rc == 0);
 
-    // Let events some time
-    zmq_sleep (1);
+    //  Allow disconnect to settle
+    msleep (SETTLE_TIME);
 
     //  Check that sending would block (there's no inbound connections).
     rc = zmq_send (push, "ABC", 3, ZMQ_DONTWAIT);
@@ -111,7 +97,7 @@ int main (void)
     assert (rc == 0);
     rc = zmq_close (push);
     assert (rc == 0);
-    rc = zmq_term (ctx);
+    rc = zmq_ctx_term (ctx);
     assert (rc == 0);
 
     return 0;

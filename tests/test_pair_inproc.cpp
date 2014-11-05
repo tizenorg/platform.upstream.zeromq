@@ -1,6 +1,5 @@
 /*
-    Copyright (c) 2010-2011 250bpm s.r.o.
-    Copyright (c) 2010-2011 Other contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2013 Contributors as noted in the AUTHORS file
 
     This file is part of 0MQ.
 
@@ -18,14 +17,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdio.h>
 #include "testutil.hpp"
 
 int main (void)
 {
-    fprintf (stderr, "test_pair_inproc running...\n");
-
-    void *ctx = zmq_init (0);
+    setup_test_environment();
+    void *ctx = zmq_ctx_new ();
     assert (ctx);
 
     void *sb = zmq_socket (ctx, ZMQ_PAIR);
@@ -39,6 +36,27 @@ int main (void)
     assert (rc == 0);
     
     bounce (sb, sc);
+    
+    // Test zmq_send_const
+    rc = zmq_send_const (sb, "foo", 3, ZMQ_SNDMORE);
+    assert (rc == 3);
+    rc = zmq_send_const (sb, "foobar", 6, 0);
+    assert (rc == 6);
+    
+    zmq_msg_t msg;
+    rc = zmq_msg_init (&msg);
+    assert (rc == 0);
+    rc = zmq_msg_recv (&msg, sc, 0);
+    assert (rc == 3);
+    assert (zmq_msg_size (&msg) == 3);
+    void* data = zmq_msg_data (&msg);
+    assert (memcmp ("foo", data, 3) == 0);
+    rc = zmq_msg_recv (&msg, sc, 0);
+    assert (rc == 6);
+    data = zmq_msg_data (&msg);
+    assert (memcmp ("foobar", data, 6) == 0);
+    
+    // Cleanup
 
     rc = zmq_close (sc);
     assert (rc == 0);
@@ -46,7 +64,7 @@ int main (void)
     rc = zmq_close (sb);
     assert (rc == 0);
 
-    rc = zmq_term (ctx);
+    rc = zmq_ctx_term (ctx);
     assert (rc == 0);
 
     return 0 ;

@@ -1,7 +1,5 @@
 /*
-    Copyright (c) 2007-2012 iMatix Corporation
-    Copyright (c) 2009-2011 250bpm s.r.o.
-    Copyright (c) 2007-2011 Other contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2013 Contributors as noted in the AUTHORS file
 
     This file is part of 0MQ.
 
@@ -26,7 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../src/platform.hpp"
+#include "platform.hpp"
 
 #if defined ZMQ_HAVE_WINDOWS
 #include <windows.h>

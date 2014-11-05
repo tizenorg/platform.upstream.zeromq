@@ -764,9 +764,13 @@ zmq_ctx_get(3) Manual Page
 for this context.</p></div>
 </div>
 <div class="sect2">
-<h3 id="_zmq_max_sockets_set_maximum_number_of_sockets">ZMQ_MAX_SOCKETS: Set maximum number of sockets</h3>
+<h3 id="_zmq_max_sockets_get_maximum_number_of_sockets">ZMQ_MAX_SOCKETS: Get maximum number of sockets</h3>
 <div class="paragraph"><p>The <em>ZMQ_MAX_SOCKETS</em> argument returns the maximum number of sockets
 allowed for this context.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_zmq_ipv6_set_ipv6_option">ZMQ_IPV6: Set IPv6 option</h3>
+<div class="paragraph"><p>The <em>ZMQ_IPV6</em> argument returns the IPv6 option for the context.</p></div>
 </div>
 </div>
 </div>
@@ -800,7 +804,7 @@ The requested option <em>option_name</em> is unknown.
 <div class="title">Setting a limit on the number of sockets</div>
 <div class="content">
 <pre><tt>void *context = zmq_ctx_new ();
-zmq_ctx_get (context, ZMQ_MAX_SOCKETS, 256);
+zmq_ctx_set (context, ZMQ_MAX_SOCKETS, 256);
 int max_sockets = zmq_ctx_get (context, ZMQ_MAX_SOCKETS);
 assert (max_sockets == 256);</tt></pre>
 </div></div>
@@ -816,15 +820,16 @@ assert (max_sockets == 256);</tt></pre>
 <div class="sect1">
 <h2 id="_authors">AUTHORS</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>This ØMQ manual page was written by Pieter Hintjens &lt;<a href="mailto:ph@imatix.com">ph@imatix.com</a>&gt;</p></div>
+<div class="paragraph"><p>This page was written by the ØMQ community. To make a change please
+read the ØMQ Contribution Policy at <a href="http://www.zeromq.org/docs:contributing">http://www.zeromq.org/docs:contributing</a>.</p></div>
 </div>
 </div>
 </div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-ØMQ 3.2.2<br />
-Last updated 2012-10-25 17:30:40 KST
+ØMQ 4.0.4<br />
+Last updated 2013-11-13 18:57:50 CET
 </div>
 </div>
 </body>

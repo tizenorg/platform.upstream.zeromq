@@ -42,10 +42,7 @@ Work with context properties::
     linkzmq:zmq_ctx_get[3]
 
 Destroy a 0MQ context::
-    linkzmq:zmq_ctx_destroy[3]
-
-Monitor a 0MQ context::
-    linkzmq:zmq_ctx_set_monitor[3]
+    linkzmq:zmq_ctx_term[3]
 
 These deprecated functions let you create and destroy 'contexts':
 
@@ -140,6 +137,10 @@ Sending and receiving messages::
     linkzmq:zmq_msg_recv[3]
     linkzmq:zmq_send[3]
     linkzmq:zmq_recv[3]
+    linkzmq:zmq_send_const[3]
+
+Monitoring socket events:
+    linkzmq:zmq_socket_monitor[3]
 
 .Input/output multiplexing
 0MQ provides a mechanism for applications to multiplex input/output events over
@@ -175,6 +176,32 @@ Proxies
 a 'frontend' socket to a 'backend' socket and switches all messages between the
 two sockets, opaquely. A proxy may optionally capture all traffic to a third
 socket. To start a proxy in an application thread, use linkzmq:zmq_proxy[3].
+
+
+Security
+~~~~~~~~
+A 0MQ socket can select a security mechanism. Both peers must use the same
+security mechanism.
+
+The following security mechanisms are provided for IPC and TCP connections:
+
+Null security::
+    linkzmq:zmq_null[7]
+
+Plain-text authentication using username and password::
+    linkzmq:zmq_plain[7]
+
+Elliptic curve authentication and encryption::
+    linkzmq:zmq_curve[7]
+
+Generate a CURVE keypair in armored text format:
+    linkzmq:zmq_curve_keypair[3]
+
+Convert an armored key into a 32-byte binary key:
+    linkzmq:zmq_z85_decode[3]
+
+Convert a 32-byte binary CURVE key to an armored text string:
+    linkzmq:zmq_z85_encode[3]
 
 
 ERROR HANDLING
@@ -215,8 +242,8 @@ members of the 0MQ community and pointers can be found on the 0MQ website.
 
 AUTHORS
 -------
-This 0MQ manual page was written by Martin Sustrik <sustrik@250bpm.com>,
-Martin Lucina <martin@lucina.net>, and Pieter Hintjens <ph@imatix.com>.
+This page was written by the 0MQ community. To make a change please
+read the 0MQ Contribution Policy at <http://www.zeromq.org/docs:contributing>.
 
 
 RESOURCES

@@ -13,8 +13,12 @@ SYNOPSIS
 *int zmq_setsockopt (void '*socket', int 'option_name', const void '*option_value', size_t 'option_len');*
 
 Caution: All options, with the exception of ZMQ_SUBSCRIBE, ZMQ_UNSUBSCRIBE,
-ZMQ_LINGER, ZMQ_ROUTER_MANDATORY and ZMQ_XPUB_VERBOSE only take effect for 
-subsequent socket bind/connects.
+ZMQ_LINGER, ZMQ_ROUTER_MANDATORY, ZMQ_PROBE_ROUTER, ZMQ_XPUB_VERBOSE,
+ZMQ_REQ_CORRELATE, and ZMQ_REQ_RELAXED, only take effect for subsequent socket
+bind/connects.
+
+Specifically, security options take effect for subsequent bind/connect calls,
+and can be changed at any time to affect subsequent binds and/or connects.
 
 DESCRIPTION
 -----------
@@ -31,7 +35,8 @@ ZMQ_SNDHWM: Set high water mark for outbound messages
 The 'ZMQ_SNDHWM' option shall set the high water mark for outbound messages on
 the specified 'socket'. The high water mark is a hard limit on the maximum
 number of outstanding messages 0MQ shall queue in memory for any single peer
-that the specified 'socket' is communicating with.
+that the specified 'socket' is communicating with. A value of zero means no
+limit.
 
 If this limit has been reached the socket shall enter an exceptional state and
 depending on the socket type, 0MQ shall take appropriate action such as
@@ -55,7 +60,8 @@ ZMQ_RCVHWM: Set high water mark for inbound messages
 The 'ZMQ_RCVHWM' option shall set the high water mark for inbound messages on
 the specified 'socket'. The high water mark is a hard limit on the maximum
 number of outstanding messages 0MQ shall queue in memory for any single peer
-that the specified 'socket' is communicating with.
+that the specified 'socket' is communicating with. A value of zero means no
+limit.
 
 If this limit has been reached the socket shall enter an exceptional state and
 depending on the socket type, 0MQ shall take appropriate action such as
@@ -129,22 +135,19 @@ Applicable socket types:: ZMQ_SUB
 
 ZMQ_IDENTITY: Set socket identity
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-The 'ZMQ_IDENTITY' option shall set the identity of the specified 'socket'.
-Socket identity is used only by request/reply pattern. Namely, it can be used
-in tandem with ROUTER socket to route messages to the peer with specific
-identity.
+The 'ZMQ_IDENTITY' option shall set the identity of the specified 'socket'
+when connecting to a ROUTER socket. The identity should be from 1 to 255
+bytes long and MAY NOT start with binary zero.
 
-Identity should be at least one byte and at most 255 bytes long. Identities
-starting with binary zero are reserved for use by 0MQ infrastructure.
-
-If two peers use the same identity when connecting to a third peer, the
-results shall be undefined.
+If two clients use the same identity when connecting to a ROUTER, the
+ROUTER socket shall accept only the first such client and reject the
+others.
 
 [horizontal]
 Option value type:: binary data
 Option value unit:: N/A
 Default value:: NULL
-Applicable socket types:: all
+Applicable socket types:: ZMQ_REQ, ZMQ_REP, ZMQ_ROUTER, ZMQ_DEALER.
 
 
 ZMQ_RATE: Set multicast data rate
@@ -175,6 +178,7 @@ Option value type:: int
 Option value unit:: milliseconds
 Default value:: 10000
 Applicable socket types:: all, when using multicast transports
+
 
 ZMQ_SNDBUF: Set kernel transmit buffer size
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -253,7 +257,7 @@ Applicable socket types:: all, only for connection-oriented transports
 
 ZMQ_RECONNECT_IVL_MAX: Set maximum reconnection interval
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-The 'ZMQ_RECONNECT_IVL_MAX' option shall set the maximum reconnection interval 
+The 'ZMQ_RECONNECT_IVL_MAX' option shall set the maximum reconnection interval
 for the specified 'socket'.  This is the maximum period 0MQ shall wait between
 attempts to reconnect. On each reconnect attempt, the previous interval shall be
 doubled untill ZMQ_RECONNECT_IVL_MAX is reached. This allows for exponential
@@ -342,12 +346,26 @@ Default value:: -1 (infinite)
 Applicable socket types:: all
 
 
-ZMQ_IPV4ONLY: Use IPv4-only sockets
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ZMQ_IPV6: Enable IPv6 on socket
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Sets the underlying native socket type.  A value of `1` will use IPv4 sockets,
-while the value of `0` will use IPv6 sockets. An IPv6 socket lets 
-applications connect to and accept connections from both IPv4 and IPv6 hosts.
+Set the IPv6 option for the socket. A value of `1` means IPv6 is
+enabled on the socket, while `0` means the socket will use only IPv4.
+When IPv6 is enabled the socket will connect to, or accept connections
+from, both IPv4 and IPv6 hosts.
+
+[horizontal]
+Option value type:: int
+Option value unit:: boolean
+Default value:: 0 (false)
+Applicable socket types:: all, when using TCP transports.
+
+
+ZMQ_IPV4ONLY: Use IPv4-only on socket
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Set the IPv4-only option for the socket. This option is deprecated.
+Please use the ZMQ_IPV6 option.
 
 [horizontal]
 Option value type:: int
@@ -356,12 +374,15 @@ Default value:: 1 (true)
 Applicable socket types:: all, when using TCP transports.
 
 
-ZMQ_DELAY_ATTACH_ON_CONNECT: Accept messages only when connections are made
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ZMQ_IMMEDIATE: Queue messages only to completed connections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If set to `1`, will delay the attachment of a pipe on connect until the underlying
-connection has completed. This will cause the socket to block if there are no other
-connections, but will prevent queues from filling on pipes awaiting connection.
+By default queues will fill on outgoing connections even if the connection has
+not completed. This can lead to "lost" messages on sockets with round-robin
+routing (REQ, PUSH, DEALER). If this option is set to `1`, messages shall be
+queued only to completed connections. This will cause the socket to block if
+there are no other connections, but will prevent queues from filling on pipes
+awaiting connection.
 
 [horizontal]
 Option value type:: int
@@ -373,8 +394,8 @@ Applicable socket types:: all, only for connection-oriented transports.
 ZMQ_ROUTER_MANDATORY: accept only routable messages on ROUTER sockets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Sets the 'ROUTER' socket behavior when an unroutable message is encountered. A 
-value of `0` is the default and discards the message silently when it cannot be 
+Sets the ROUTER socket behavior when an unroutable message is encountered. A
+value of `0` is the default and discards the message silently when it cannot be
 routed.  A value of `1` returns an 'EHOSTUNREACH' error code if the message
 cannot be routed.
 
@@ -385,11 +406,49 @@ Default value:: 0
 Applicable socket types:: ZMQ_ROUTER
 
 
+ZMQ_ROUTER_RAW: switch ROUTER socket to raw mode
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Sets the raw mode on the ROUTER, when set to 1. When the ROUTER socket is in
+raw mode, and when using the tcp:// transport, it will read and write TCP data
+without 0MQ framing. This lets 0MQ applications talk to non-0MQ applications.
+When using raw mode, you cannot set explicit identities, and the ZMQ_MSGMORE
+flag is ignored when sending data messages. In raw mode you can close a specific
+connection by sending it a zero-length message (following the identity frame).
+
+NOTE: This option is deprecated, please use ZMQ_STREAM sockets instead.
+
+[horizontal]
+Option value type:: int
+Option value unit:: 0, 1
+Default value:: 0
+Applicable socket types:: ZMQ_ROUTER
+
+
+ZMQ_PROBE_ROUTER: bootstrap connections to ROUTER sockets
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When set to 1, the socket will automatically send an empty message when a
+new connection is made or accepted. You may set this on REQ, DEALER, or
+ROUTER sockets connected to a ROUTER socket. The application must filter
+such empty messages. The ZMQ_PROBE_ROUTER option in effect provides the
+ROUTER application with an event signaling the arrival of a new peer.
+
+NOTE: do not set this option on a socket that talks to any other socket
+types: the results are undefined.
+
+[horizontal]
+Option value type:: int
+Option value unit:: 0, 1
+Default value:: 0
+Applicable socket types:: ZMQ_ROUTER, ZMQ_DEALER, ZMQ_REQ
+
+
 ZMQ_XPUB_VERBOSE: provide all subscription messages on XPUB sockets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Sets the 'XPUB' socket behavior on new subscriptions and unsubscriptions. 
-A value of '0' is the default and passes only new subscription messages to 
+Sets the 'XPUB' socket behavior on new subscriptions and unsubscriptions.
+A value of '0' is the default and passes only new subscription messages to
 upstream. A value of '1' passes all subscription messages upstream.
 
 [horizontal]
@@ -399,9 +458,49 @@ Default value:: 0
 Applicable socket types:: ZMQ_XPUB
 
 
+ZMQ_REQ_CORRELATE: match replies with requests
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The default behavior of REQ sockets is to rely on the ordering of messages to 
+match requests and responses and that is usually sufficient. When this option
+is set to 1, the REQ socket will prefix outgoing messages with an extra frame
+containing a request id. That means the full message is (request id, 0,
+user frames...). The REQ socket will discard all incoming messages that don't
+begin with these two frames.
+
+[horizontal]
+Option value type:: int
+Option value unit:: 0, 1
+Default value:: 0
+Applicable socket types:: ZMQ_REQ
+
+
+ZMQ_REQ_RELAXED: relax strict alternation between request and reply
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, a REQ socket does not allow initiating a new request with
+_zmq_send(3)_ until the reply to the previous one has been received.
+When set to 1, sending another message is allowed and has the effect of
+disconnecting the underlying connection to the peer from which the reply was
+expected, triggering a reconnection attempt on transports that support it.
+The request-reply state machine is reset and a new request is sent to the
+next available peer.
+
+If set to 1, also enable ZMQ_REQ_CORRELATE to ensure correct matching of
+requests and replies. Otherwise a late reply to an aborted request can be 
+reported as the reply to the superseding request.
+
+[horizontal]
+Option value type:: int
+Option value unit:: 0, 1
+Default value:: 0
+Applicable socket types:: ZMQ_REQ
+
+
 ZMQ_TCP_KEEPALIVE: Override SO_KEEPALIVE socket option
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Override 'SO_KEEPALIVE' socket option(where supported by OS).
+
+Override 'SO_KEEPALIVE' socket option (where supported by OS).
 The default value of `-1` means to skip any overrides and leave it to OS default.
 
 [horizontal]
@@ -411,10 +510,12 @@ Default value:: -1 (leave to OS default)
 Applicable socket types:: all, when using TCP transports.
 
 
-ZMQ_TCP_KEEPALIVE_IDLE: Override TCP_KEEPCNT(or TCP_KEEPALIVE on some OS)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Override 'TCP_KEEPCNT'(or 'TCP_KEEPALIVE' on some OS) socket option(where supported by OS).
-The default value of `-1` means to skip any overrides and leave it to OS default.
+ZMQ_TCP_KEEPALIVE_IDLE: Override TCP_KEEPCNT (or TCP_KEEPALIVE on some OS)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Override 'TCP_KEEPCNT'(or 'TCP_KEEPALIVE' on some OS) socket option (where
+supported by OS). The default value of `-1` means to skip any overrides and
+leave it to OS default.
 
 [horizontal]
 Option value type:: int
@@ -425,8 +526,9 @@ Applicable socket types:: all, when using TCP transports.
 
 ZMQ_TCP_KEEPALIVE_CNT: Override TCP_KEEPCNT socket option
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Override 'TCP_KEEPCNT' socket option(where supported by OS).
-The default value of `-1` means to skip any overrides and leave it to OS default.
+
+Override 'TCP_KEEPCNT' socket option (where supported by OS). The default
+value of `-1` means to skip any overrides and leave it to OS default.
 
 [horizontal]
 Option value type:: int
@@ -437,8 +539,9 @@ Applicable socket types:: all, when using TCP transports.
 
 ZMQ_TCP_KEEPALIVE_INTVL: Override TCP_KEEPINTVL socket option
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Override 'TCP_KEEPINTVL' socket option(where supported by OS).
-The default value of `-1` means to skip any overrides and leave it to OS default.
+
+Override 'TCP_KEEPINTVL' socket option(where supported by OS). The default
+value of `-1` means to skip any overrides and leave it to OS default.
 
 [horizontal]
 Option value type:: int
@@ -449,11 +552,12 @@ Applicable socket types:: all, when using TCP transports.
 
 ZMQ_TCP_ACCEPT_FILTER: Assign filters to allow new TCP connections
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Assign arbitrary number of filters that will be applied for each new TCP transport
-connection on a listening socket.
-If no filters applied, then TCP transport allows connections from any ip.
-If at least one filter is applied then new connection source ip should be matched.
-To clear all filters call zmq_setsockopt(socket, ZMQ_TCP_ACCEPT_FILTER, NULL, 0).
+
+Assign an arbitrary number of filters that will be applied for each new TCP
+transport connection on a listening socket. If no filters are applied, then
+the TCP transport allows connections from any IP address. If at least one
+filter is applied then new connection source ip should be matched. To clear
+all filters call zmq_setsockopt(socket, ZMQ_TCP_ACCEPT_FILTER, NULL, 0).
 Filter is a null-terminated string with ipv6 or ipv4 CIDR.
 
 [horizontal]
@@ -461,6 +565,150 @@ Option value type:: binary data
 Option value unit:: N/A
 Default value:: no filters (allow from all)
 Applicable socket types:: all listening sockets, when using TCP transports.
+
+
+ZMQ_PLAIN_SERVER: Set PLAIN server role
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Defines whether the socket will act as server for PLAIN security, see
+linkzmq:zmq_plain[7]. A value of '1' means the socket will act as
+PLAIN server. A value of '0' means the socket will not act as PLAIN
+server, and its security role then depends on other option settings.
+Setting this to '0' shall reset the socket security to NULL.
+
+[horizontal]
+Option value type:: int
+Option value unit:: 0, 1
+Default value:: 0
+Applicable socket types:: all, when using TCP transport
+
+
+ZMQ_PLAIN_USERNAME: Set PLAIN security username
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Sets the username for outgoing connections over TCP or IPC. If you set this
+to a non-null value, the security mechanism used for connections shall be
+PLAIN, see linkzmq:zmq_plain[7]. If you set this to a null value, the security
+mechanism used for connections shall be NULL, see linkzmq:zmq_null[3].
+
+[horizontal]
+Option value type:: character string
+Option value unit:: N/A
+Default value:: not set
+Applicable socket types:: all, when using TCP transport
+
+
+ZMQ_PLAIN_PASSWORD: Set PLAIN security password
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Sets the password for outgoing connections over TCP or IPC. If you set this
+to a non-null value, the security mechanism used for connections shall be
+PLAIN, see linkzmq:zmq_plain[7]. If you set this to a null value, the security
+mechanism used for connections shall be NULL, see linkzmq:zmq_null[3].
+
+[horizontal]
+Option value type:: character string
+Option value unit:: N/A
+Default value:: not set
+Applicable socket types:: all, when using TCP transport
+
+
+ZMQ_CURVE_SERVER: Set CURVE server role
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Defines whether the socket will act as server for CURVE security, see
+linkzmq:zmq_curve[7]. A value of '1' means the socket will act as
+CURVE server. A value of '0' means the socket will not act as CURVE
+server, and its security role then depends on other option settings.
+Setting this to '0' shall reset the socket security to NULL. When you
+set this you must also set the server's secret key using the
+ZMQ_CURVE_SECRETKEY option. A server socket does not need to know
+its own public key.
+
+[horizontal]
+Option value type:: int
+Option value unit:: 0, 1
+Default value:: 0
+Applicable socket types:: all, when using TCP transport
+
+
+ZMQ_CURVE_PUBLICKEY: Set CURVE public key
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Sets the socket's long term public key. You must set this on CURVE client
+sockets, see linkzmq:zmq_curve[7]. You can provide the key as 32 binary
+bytes, or as a 40-character string encoded in the Z85 encoding format.
+The public key must always be used with the matching secret key. To
+generate a public/secret key pair, use linkzmq:zmq_curve_keypair[3].
+
+[horizontal]
+Option value type:: binary data or Z85 text string
+Option value size:: 32 or 40
+Default value:: NULL
+Applicable socket types:: all, when using TCP transport
+
+
+ZMQ_CURVE_SECRETKEY: Set CURVE secret key
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Sets the socket's long term secret key. You must set this on both CURVE
+client and server sockets, see linkzmq:zmq_curve[7]. You can provide the
+key as 32 binary bytes, or as a 40-character string encoded in the Z85
+encoding format. To generate a public/secret key pair, use
+linkzmq:zmq_curve_keypair[3].
+
+[horizontal]
+Option value type:: binary data or Z85 text string
+Option value size:: 32 or 40
+Default value:: NULL
+Applicable socket types:: all, when using TCP transport
+
+
+ZMQ_CURVE_SERVERKEY: Set CURVE server key
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Sets the socket's long term server key. You must set this on CURVE client
+sockets, see linkzmq:zmq_curve[7]. You can provide the key as 32 binary
+bytes, or as a 40-character string encoded in the Z85 encoding format.
+This key must have been generated together with the server's secret key.
+
+[horizontal]
+Option value type:: binary data or Z85 text string
+Option value size:: 32 or 40
+Default value:: NULL
+Applicable socket types:: all, when using TCP transport
+
+
+ZMQ_ZAP_DOMAIN: Set RFC 27 authentication domain
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Sets the domain for ZAP (ZMQ RFC 27) authentication. For NULL security (the
+default on all tcp:// connections), ZAP authentication only happens if you
+set a non-empty domain. For PLAIN and CURVE security, ZAP requests are always
+made, if there is a ZAP handler present. See http://rfc.zeromq.org/spec:27
+for more details.
+
+[horizontal]
+Option value type:: character string
+Option value unit:: N/A
+Default value:: not set
+Applicable socket types:: all, when using TCP transport
+
+
+ZMQ_CONFLATE: Keep only last message
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If set, a socket shall keep only one message in its inbound/outbound
+queue, this message being the last message received/the last message
+to be sent.
+Ignores 'ZMQ_RECVHWM' and 'ZMQ_SENDHWM' options.
+Does not supports multi-part messages, in particular, only one part of it
+is kept in the socket internal queue.
+[horizontal]
+Option value type:: int
+Option value unit:: boolean
+Default value:: 0 (false)
+Applicable socket types:: ZMQ_PULL, ZMQ_PUSH, ZMQ_SUB, ZMQ_PUB, ZMQ_DEALER
 
 
 RETURN VALUE
@@ -497,13 +745,13 @@ rc = zmq_setsockopt (socket, ZMQ_SUBSCRIBE, "ANIMALS.CATS", 12);
 int64_t affinity;
 /* Incoming connections on TCP port 5555 shall be handled by I/O thread 1 */
 affinity = 1;
-rc = zmq_setsockopt (socket, ZMQ_AFFINITY, &affinity, sizeof affinity);
+rc = zmq_setsockopt (socket, ZMQ_AFFINITY, &affinity, sizeof (affinity));
 assert (rc);
 rc = zmq_bind (socket, "tcp://lo:5555");
 assert (rc);
 /* Incoming connections on TCP port 5556 shall be handled by I/O thread 2 */
 affinity = 2;
-rc = zmq_setsockopt (socket, ZMQ_AFFINITY, &affinity, sizeof affinity);
+rc = zmq_setsockopt (socket, ZMQ_AFFINITY, &affinity, sizeof (affinity));
 assert (rc);
 rc = zmq_bind (socket, "tcp://lo:5556");
 assert (rc);
@@ -514,10 +762,12 @@ SEE ALSO
 --------
 linkzmq:zmq_getsockopt[3]
 linkzmq:zmq_socket[3]
+linkzmq:zmq_plain[7]
+linkzmq:zmq_curve[7]
 linkzmq:zmq[7]
 
 
 AUTHORS
 -------
-This 0MQ manual page was written by Martin Sustrik <sustrik@250bpm.com> and
-Martin Lucina <mato@kotelna.sk>.
+This page was written by the 0MQ community. To make a change please
+read the 0MQ Contribution Policy at <http://www.zeromq.org/docs:contributing>.

@@ -1,4 +1,4 @@
-/* src/platform.hpp.in.  Generated from configure.in by autoheader.  */
+/* src/platform.hpp.in.  Generated from configure.ac by autoheader.  */
 
 /* Define to 1 if you have the <alloca.h> header file. */
 #undef HAVE_ALLOCA_H
@@ -14,6 +14,9 @@
 
 /* Define to 1 if you have the <errno.h> header file. */
 #undef HAVE_ERRNO_H
+
+/* Define to 1 if you have the `fork' function. */
+#undef HAVE_FORK
 
 /* Define to 1 if you have the `freeifaddrs' function. */
 #undef HAVE_FREEIFADDRS
@@ -50,6 +53,9 @@
 
 /* Define to 1 if you have the `socket' library (-lsocket). */
 #undef HAVE_LIBSOCKET
+
+/* Define to 1 if you have the `sodium' library (-lsodium). */
+#undef HAVE_LIBSODIUM
 
 /* Define to 1 if you have the `ws2_32' library (-lws2_32). */
 #undef HAVE_LIBWS2_32

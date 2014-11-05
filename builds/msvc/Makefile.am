@@ -1,6 +1,7 @@
 LIBZMQ_DIST = libzmq/libzmq.vcproj libzmq/libzmq.vcxproj \
               libzmq/libzmq.vcxproj.filters \
-              platform.hpp msvc.sln msvc10.sln
+              platform.hpp msvc.sln msvc10.sln \
+              errno.cpp errno.hpp
 
 PERF_DIST = c_local_thr/c_local_thr.vcproj \
             c_local_thr/c_local_thr.vcxproj \
@@ -21,11 +22,13 @@ PROPERTIES_DIST = properties/Common.props \
                   properties/Executable.props \
                   properties/Precompiled.props \
                   properties/Release.props \
+                  properties/Static.props \
                   properties/Win32.props \
                   properties/Win32_Release.props \
                   properties/WithOpenPGM.props \
                   properties/x64.props \
-                  properties/ZeroMQ.props
+                  properties/ZeroMQ.props \
+                  properties/ZeroMQ_Static.props
 
 PRECOMPILED_DIST = ../../src/precompiled.hpp \
                    ../../src/precompiled.cpp

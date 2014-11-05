@@ -791,6 +791,7 @@ general <em>messaging pattern</em> which is built from related socket types.</p>
 <div class="paragraph"><p>The request-reply pattern is used for sending requests from a ZMQ_REQ <em>client</em>
 to one or more ZMQ_REP <em>services</em>, and receiving subsequent replies to each
 request sent.</p></div>
+<div class="paragraph"><p>The request-reply pattern is formally defined by <a href="http://rfc.zeromq.org/spec:28">http://rfc.zeromq.org/spec:28</a>.</p></div>
 <div class="sect3">
 <h4 id="_zmq_req">ZMQ_REQ</h4>
 <div class="paragraph"><p>A socket of type <em>ZMQ_REQ</em> is used by a <em>client</em> to send requests to and
@@ -798,11 +799,9 @@ receive replies from a <em>service</em>. This socket type allows only an alterna
 sequence of <em>zmq_send(request)</em> and subsequent <em>zmq_recv(reply)</em> calls. Each
 request sent is round-robined among all <em>services</em>, and each reply received is
 matched with the last issued request.</p></div>
-<div class="paragraph"><p>When a <em>ZMQ_REQ</em> socket enters the <em>mute</em> state due to having reached the
-high water mark for all <em>services</em>, or if there are no <em>services</em> at all, then
-any <a href="zmq_send.html">zmq_send(3)</a> operations on the socket shall block until the
-<em>mute</em> state ends or at least one <em>service</em> becomes available for sending;
-messages are not discarded.</p></div>
+<div class="paragraph"><p>If no services are available, then any send operation on the socket shall
+block until at least one <em>service</em> becomes available. The REQ socket shall
+not discard messages.</p></div>
 <div class="hdlist"><div class="title">Summary of ZMQ_REQ characteristics</div><table>
 <tr>
 <td class="hdlist1">
@@ -879,10 +878,7 @@ send replies to a <em>client</em>. This socket type allows only an alternating
 sequence of <em>zmq_recv(request)</em> and subsequent <em>zmq_send(reply)</em> calls. Each
 request received is fair-queued from among all <em>clients</em>, and each reply sent
 is routed to the <em>client</em> that issued the last request. If the original
-requester doesn&#8217;t exist any more the reply is silently discarded.</p></div>
-<div class="paragraph"><p>When a <em>ZMQ_REP</em> socket enters the <em>mute</em> state due to having reached the
-high water mark for a <em>client</em>, then any replies sent to the <em>client</em> in
-question shall be dropped until the mute state ends.</p></div>
+requester does not exist any more the reply is silently discarded.</p></div>
 <div class="hdlist"><div class="title">Summary of ZMQ_REP characteristics</div><table>
 <tr>
 <td class="hdlist1">
@@ -939,17 +935,6 @@ Last peer
 </p>
 </td>
 </tr>
-<tr>
-<td class="hdlist1">
-Action in mute state
-<br />
-</td>
-<td class="hdlist2">
-<p style="margin-top: 0;">
-Drop
-</p>
-</td>
-</tr>
 </table></div>
 </div>
 <div class="sect3">
@@ -965,7 +950,6 @@ discarded.</p></div>
 <div class="paragraph"><p>When a <em>ZMQ_DEALER</em> socket is connected to a <em>ZMQ_REP</em> socket each message sent
 must consist of an empty message part, the <em>delimiter</em>, followed by one or more
 <em>body parts</em>.</p></div>
-<div class="paragraph"><p>Deprecated alias: <em>ZMQ_XREQ</em>.</p></div>
 <div class="hdlist"><div class="title">Summary of ZMQ_DEALER characteristics</div><table>
 <tr>
 <td class="hdlist1">
@@ -1044,7 +1028,7 @@ message before passing it to the application. Messages received are fair-queued
 from among all connected peers. When sending messages a <em>ZMQ_ROUTER</em> socket shall
 remove the first part of the message and use it to determine the <em>identity</em> of
 the peer the message shall be routed to. If the peer does not exist anymore
-the message shall be silently discarded by default, unless <em>ZMQ_ROUTER_BEHAVIOR</em>
+the message shall be silently discarded by default, unless <em>ZMQ_ROUTER_MANDATORY</em>
 socket option is set to <em>1</em>.</p></div>
 <div class="paragraph"><p>When a <em>ZMQ_ROUTER</em> socket enters the <em>mute</em> state due to having reached the
 high water mark for all peers, then any messages sent to the socket shall be dropped
@@ -1056,7 +1040,6 @@ the individual high water mark has been reached shall also be dropped.</p></div>
 as seen by the application becomes: one or more <em>identity</em> parts, <em>delimiter</em>
 part, one or more <em>body parts</em>. When sending replies to a <em>ZMQ_REQ</em> socket the
 application must include the <em>delimiter</em> part.</p></div>
-<div class="paragraph"><p>Deprecated alias: <em>ZMQ_XREP</em>.</p></div>
 <div class="hdlist"><div class="title">Summary of ZMQ_ROUTER characteristics</div><table>
 <tr>
 <td class="hdlist1">
@@ -1131,6 +1114,7 @@ Drop
 <h3 id="_publish_subscribe_pattern">Publish-subscribe pattern</h3>
 <div class="paragraph"><p>The publish-subscribe pattern is used for one-to-many distribution of data from
 a single <em>publisher</em> to multiple <em>subscribers</em> in a fan out fashion.</p></div>
+<div class="paragraph"><p>The publish-subscribe pattern is formally defined by <a href="http://rfc.zeromq.org/spec:29">http://rfc.zeromq.org/spec:29</a>.</p></div>
 <div class="sect3">
 <h4 id="_zmq_pub">ZMQ_PUB</h4>
 <div class="paragraph"><p>A socket of type <em>ZMQ_PUB</em> is used by a <em>publisher</em> to distribute data.
@@ -1272,17 +1256,6 @@ N/A
 </p>
 </td>
 </tr>
-<tr>
-<td class="hdlist1">
-Action in mute state
-<br />
-</td>
-<td class="hdlist2">
-<p style="margin-top: 0;">
-Drop
-</p>
-</td>
-</tr>
 </table></div>
 </div>
 <div class="sect3">
@@ -1290,7 +1263,8 @@ Drop
 <div class="paragraph"><p>Same as ZMQ_PUB except that you can receive subscriptions from the peers
 in form of incoming messages. Subscription message is a byte 1 (for
 subscriptions) or byte 0 (for unsubscriptions) followed by the subscription
-body.</p></div>
+body. Messages without a sub/unsub prefix are also received, but have no
+effect on subscription status.</p></div>
 <div class="hdlist"><div class="title">Summary of ZMQ_XPUB characteristics</div><table>
 <tr>
 <td class="hdlist1">
@@ -1364,7 +1338,8 @@ Drop
 <h4 id="_zmq_xsub">ZMQ_XSUB</h4>
 <div class="paragraph"><p>Same as ZMQ_SUB except that you subscribe by sending subscription messages to
 the socket. Subscription message is a byte 1 (for subscriptions) or byte 0
-(for unsubscriptions) followed by the subscription body.</p></div>
+(for unsubscriptions) followed by the subscription body. Messages without a
+sub/unsub prefix may also be sent, but have no effect on subscription status.</p></div>
 <div class="hdlist"><div class="title">Summary of ZMQ_XSUB characteristics</div><table>
 <tr>
 <td class="hdlist1">
@@ -1441,6 +1416,7 @@ Drop
 a pipeline. Data always flows down the pipeline, and each stage of the pipeline
 is connected to at least one <em>node</em>. When a pipeline stage is connected to
 multiple <em>nodes</em> data is round-robined among all connected <em>nodes</em>.</p></div>
+<div class="paragraph"><p>The pipeline pattern is formally defined by <a href="http://rfc.zeromq.org/spec:30">http://rfc.zeromq.org/spec:30</a>.</p></div>
 <div class="sect3">
 <h4 id="_zmq_push">ZMQ_PUSH</h4>
 <div class="paragraph"><p>A socket of type <em>ZMQ_PUSH</em> is used by a pipeline <em>node</em> to send messages
@@ -1602,6 +1578,7 @@ Block
 <div class="paragraph"><p>The exclusive pair pattern is used to connect a peer to precisely one other
 peer. This pattern is used for inter-thread communication across the inproc
 transport.</p></div>
+<div class="paragraph"><p>The exclusive pair pattern is formally defined by <a href="http://rfc.zeromq.org/spec:31">http://rfc.zeromq.org/spec:31</a>.</p></div>
 <div class="sect3">
 <h4 id="_zmq_pair">ZMQ_PAIR</h4>
 <div class="paragraph"><p>A socket of type <em>ZMQ_PAIR</em> can only be connected to a single peer at any one
@@ -1692,6 +1669,100 @@ Block
 </table></div>
 </div>
 </div>
+<div class="sect2">
+<h3 id="_native_pattern">Native Pattern</h3>
+<div class="paragraph"><p>The native pattern is used for communicating with TCP peers and allows
+asynchronous requests and replies in either direction.</p></div>
+<div class="sect3">
+<h4 id="_zmq_stream">ZMQ_STREAM</h4>
+<div class="paragraph"><p>A socket of type <em>ZMQ_STREAM</em> is used to send and receive TCP data from a
+non-ØMQ peer, when using the tcp:// transport. A <em>ZMQ_STREAM</em> socket can
+act as client and/or server, sending and/or receiving TCP data asynchronously.</p></div>
+<div class="paragraph"><p>When receiving TCP data, a <em>ZMQ_STREAM</em> socket shall prepend a message part
+containing the <em>identity</em> of the originating peer to the message before passing
+it to the application. Messages received are fair-queued from among all
+connected peers.</p></div>
+<div class="paragraph"><p>When sending TCP data, a <em>ZMQ_STREAM</em> socket shall remove the first part of the
+message and use it to determine the <em>identity</em> of the peer the message shall be
+routed to, and unroutable messages shall cause an EHOSTUNREACH or EAGAIN error.</p></div>
+<div class="paragraph"><p>To open a connection to a server, use the zmq_connect call, and then fetch the
+socket identity using the ZMQ_IDENTITY zmq_getsockopt call.</p></div>
+<div class="paragraph"><p>To close a specific client connection, as a server, send the identity frame
+followed by a zero-length message (see EXAMPLE section).</p></div>
+<div class="paragraph"><p>The ZMQ_MSGMORE flag is ignored on data frames. You must send one identity frame
+followed by one data frame.</p></div>
+<div class="paragraph"><p>Also, please note that omitting the ZMQ_MSGMORE flag will prevent sending further
+data (from any client) on the same socket.</p></div>
+<div class="hdlist"><div class="title">Summary of ZMQ_STREAM characteristics</div><table>
+<tr>
+<td class="hdlist1">
+Compatible peer sockets
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+none.
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Direction
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+Bidirectional
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Send/receive pattern
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+Unrestricted
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Outgoing routing strategy
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+See text
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Incoming routing strategy
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+Fair-queued
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Action in mute state
+<br />
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+EAGAIN
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -1742,6 +1813,46 @@ The context specified was terminated.
 </div>
 </div>
 <div class="sect1">
+<h2 id="_example">EXAMPLE</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">Creating a simple HTTP server using ZMQ_STREAM</div>
+<div class="content">
+<pre><tt>void *ctx = zmq_ctx_new ();
+assert (ctx);
+/* Create ZMQ_STREAM socket */
+void *socket = zmq_socket (ctx, ZMQ_STREAM);
+assert (socket);
+int rc = zmq_bind (socket, "tcp://*:8080");
+assert (rc == 0);
+/* Data structure to hold the ZMQ_STREAM ID */
+uint8_t id [256];
+size_t id_size = 256;
+while (1) {
+        /*  Get HTTP request; ID frame and then request */
+        id_size = zmq_recv (server, id, 256, 0);
+        assert (id_size &gt; 0);
+        /* Prepares the response */
+        char http_response [] =
+                "HTTP/1.0 200 OK\r\n"
+                "Content-Type: text/plain\r\n"
+                "\r\n"
+                "Hello, World!";
+        /* Sends the ID frame followed by the response */
+        zmq_send (socket, id, id_size, ZMQ_SNDMORE);
+        zmq_send (socket, http_response, strlen (http_response), ZMQ_SNDMORE);
+        /* Closes the connection by sending the ID frame followed by a zero response */
+        zmq_send (socket, id, id_size, ZMQ_SNDMORE);
+        zmq_send (socket, 0, 0, ZMQ_SNDMORE);
+        /* NOTE: If we don't use ZMQ_SNDMORE, then we won't be able to send more */
+        /* message to any client */
+}
+zmq_close (socket);
+zmq_ctx_destroy (ctx);</tt></pre>
+</div></div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_see_also">SEE ALSO</h2>
 <div class="sectionbody">
 <div class="paragraph"><p><a href="zmq_init.html">zmq_init(3)</a>
@@ -1757,16 +1868,16 @@ The context specified was terminated.
 <div class="sect1">
 <h2 id="_authors">AUTHORS</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>This ØMQ manual page was written by Martin Sustrik &lt;<a href="mailto:sustrik@250bpm.com">sustrik@250bpm.com</a>&gt;,
-Martin Lucina &lt;<a href="mailto:mato@kotelna.sk">mato@kotelna.sk</a>&gt;, and Pieter Hintjens &lt;<a href="mailto:ph@imatix.com">ph@imatix.com</a>&gt;.</p></div>
+<div class="paragraph"><p>This page was written by the ØMQ community. To make a change please
+read the ØMQ Contribution Policy at <a href="http://www.zeromq.org/docs:contributing">http://www.zeromq.org/docs:contributing</a>.</p></div>
 </div>
 </div>
 </div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-ØMQ 3.2.2<br />
-Last updated 2012-11-14 10:09:14 KST
+ØMQ 4.0.4<br />
+Last updated 2013-12-08 08:02:10 CET
 </div>
 </div>
 </body>

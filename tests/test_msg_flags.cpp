@@ -1,7 +1,5 @@
 /*
-    Copyright (c) 2007-2012 iMatix Corporation
-    Copyright (c) 2011 250bpm s.r.o.
-    Copyright (c) 2007-2011 Other contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2013 Contributors as noted in the AUTHORS file
 
     This file is part of 0MQ.
 
@@ -19,23 +17,24 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "../include/zmq.h"
-#include <string.h>
-
-#undef NDEBUG
-#include <assert.h>
+#include "testutil.hpp"
 
 int main (void)
 {
+    setup_test_environment();
     //  Create the infrastructure
-    void *ctx = zmq_init (0);
+    void *ctx = zmq_ctx_new ();
     assert (ctx);
+    
     void *sb = zmq_socket (ctx, ZMQ_ROUTER);
     assert (sb);
+    
     int rc = zmq_bind (sb, "inproc://a");
     assert (rc == 0);
+    
     void *sc = zmq_socket (ctx, ZMQ_DEALER);
     assert (sc);
+    
     rc = zmq_connect (sc, "inproc://a");
     assert (rc == 0);
    
@@ -49,29 +48,31 @@ int main (void)
     zmq_msg_t msg;
     rc = zmq_msg_init (&msg);
     assert (rc == 0);
-    rc = zmq_recvmsg (sb, &msg, 0);
+    rc = zmq_msg_recv (&msg, sb, 0);
     assert (rc >= 0);
-    int more = zmq_msg_get (&msg, ZMQ_MORE);
+    int more = zmq_msg_more (&msg);
     assert (more == 1);
 
     //  Then the first part of the message body.
-    rc = zmq_recvmsg (sb, &msg, 0);
+    rc = zmq_msg_recv (&msg, sb, 0);
     assert (rc == 1);
-    more = zmq_msg_get (&msg, ZMQ_MORE);
+    more = zmq_msg_more (&msg);
     assert (more == 1);
 
     //  And finally, the second part of the message body.
-    rc = zmq_recvmsg (sb, &msg, 0);
+    rc = zmq_msg_recv (&msg, sb, 0);
     assert (rc == 1);
-    more = zmq_msg_get (&msg, ZMQ_MORE);
+    more = zmq_msg_more (&msg);
     assert (more == 0);
 
     //  Deallocate the infrastructure.
     rc = zmq_close (sc);
     assert (rc == 0);
+    
     rc = zmq_close (sb);
     assert (rc == 0);
-    rc = zmq_term (ctx);
+    
+    rc = zmq_ctx_term (ctx);
     assert (rc == 0);
     return 0 ;
 }

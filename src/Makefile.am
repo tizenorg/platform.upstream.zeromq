@@ -15,6 +15,8 @@ libzmq_la_SOURCES = \
     command.hpp \
     config.hpp \
     ctx.hpp \
+    curve_client.hpp \
+    curve_server.hpp \
     decoder.hpp \
     devpoll.hpp \
     dist.hpp \
@@ -26,8 +28,6 @@ libzmq_la_SOURCES = \
     i_encoder.hpp \
     i_decoder.hpp \
     i_engine.hpp \
-    i_msg_sink.hpp \
-    i_msg_source.hpp \
     i_poll_events.hpp \
     io_object.hpp \
     io_thread.hpp \
@@ -41,9 +41,11 @@ libzmq_la_SOURCES = \
     lb.hpp \
     likely.hpp \
     mailbox.hpp \
+    mechanism.hpp  \
     msg.hpp \
     mtrie.hpp \
     mutex.hpp \
+    null_mechanism.hpp \
     object.hpp \
     options.hpp \
     own.hpp \
@@ -51,6 +53,7 @@ libzmq_la_SOURCES = \
     pgm_sender.hpp \
     pgm_socket.hpp \
     pipe.hpp \
+    plain_mechanism.hpp \
     platform.hpp \
     poll.hpp \
     poller.hpp \
@@ -69,6 +72,7 @@ libzmq_la_SOURCES = \
     signaler.hpp \
     socket_base.hpp \
     stdint.hpp \
+    stream.hpp \
     stream_engine.hpp \
     sub.hpp \
     tcp.hpp \
@@ -84,14 +88,15 @@ libzmq_la_SOURCES = \
     dealer.hpp \
     xsub.hpp \
     ypipe.hpp \
+    ypipe_base.hpp \
     yqueue.hpp \
     address.cpp \
     clock.cpp \
     ctx.cpp \
-    decoder.cpp \
+    curve_client.cpp \
+    curve_server.cpp \
     devpoll.cpp \
     dist.cpp \
-    encoder.cpp \
     epoll.cpp \
     err.cpp \
     fq.cpp \
@@ -104,8 +109,10 @@ libzmq_la_SOURCES = \
     kqueue.cpp \
     lb.cpp \
     mailbox.cpp \
+    mechanism.cpp \
     msg.cpp \
     mtrie.cpp \
+    null_mechanism.cpp \
     object.cpp \
     options.cpp \
     own.cpp \
@@ -114,6 +121,7 @@ libzmq_la_SOURCES = \
     pgm_sender.cpp \
     pgm_socket.cpp \
     pipe.cpp \
+    plain_mechanism.cpp \
     poll.cpp \
     poller_base.cpp \
     pull.cpp \
@@ -128,6 +136,7 @@ libzmq_la_SOURCES = \
     session_base.cpp \
     signaler.cpp \
     socket_base.cpp \
+    stream.cpp \
     stream_engine.cpp \
     sub.cpp \
     tcp.cpp \
@@ -140,13 +149,23 @@ libzmq_la_SOURCES = \
     router.cpp \
     dealer.cpp \
     v1_decoder.cpp \
-    v1_decoder.hpp \
     v1_encoder.cpp \
+    v1_decoder.hpp \
     v1_encoder.hpp \
-    v1_protocol.hpp \
+    v2_decoder.cpp \
+    v2_decoder.hpp \
+    v2_encoder.cpp \
+    v2_encoder.hpp \
+    v2_protocol.hpp \
     xsub.cpp \
     zmq.cpp \
-    zmq_utils.cpp
+    zmq_utils.cpp \
+    raw_decoder.hpp \
+    raw_decoder.cpp \
+    raw_encoder.hpp \
+    raw_encoder.cpp \
+    ypipe_conflate.hpp \
+    dbuffer.hpp
 
 if ON_MINGW
 libzmq_la_LDFLAGS = -no-undefined -avoid-version -version-info @LTVER@ @LIBZMQ_EXTRA_LDFLAGS@
@@ -154,9 +173,15 @@ else
 if ON_ANDROID
 libzmq_la_LDFLAGS = -avoid-version -version-info @LTVER@ @LIBZMQ_EXTRA_LDFLAGS@
 else
-libzmq_la_LDFLAGS = -version-info @LTVER@ @LIBZMQ_EXTRA_LDFLAGS@
+if ON_LINUX
+libzmq_la_LDFLAGS = -version-info @LTVER@ @LIBZMQ_EXTRA_LDFLAGS@ -Wl,--version-script=$(srcdir)/libzmq.vers
+else
+libzmq_la_LDFLAGS = -version-info @LTVER@ @LIBZMQ_EXTRA_LDFLAGS@ -Wl
 endif
 endif
+endif
+
+EXTRA_DIST = libzmq.vers
 
 libzmq_la_CXXFLAGS = @LIBZMQ_EXTRA_CXXFLAGS@
 

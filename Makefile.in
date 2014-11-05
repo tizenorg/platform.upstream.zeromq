@@ -34,7 +34,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 subdir = .
-DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
+DIST_COMMON = $(am__configure_deps) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in \
 	$(top_srcdir)/builds/redhat/zeromq.spec.in \
 	$(top_srcdir)/configure AUTHORS COPYING COPYING.LESSER INSTALL \
@@ -47,7 +47,7 @@ am__aclocal_m4_deps = $(top_srcdir)/config/libtool.m4 \
 	$(top_srcdir)/config/ltsugar.m4 \
 	$(top_srcdir)/config/ltversion.m4 \
 	$(top_srcdir)/config/lt~obsolete.m4 $(top_srcdir)/acinclude.m4 \
-	$(top_srcdir)/configure.in
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
@@ -256,9 +256,9 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 ACLOCAL_AMFLAGS = -I config
-@BUILD_PGM_FALSE@SUBDIRS = src doc perf tests
-@BUILD_PGM_TRUE@SUBDIRS = foreign/openpgm src doc perf tests
-DIST_SUBDIRS = foreign/openpgm src doc perf tests builds/msvc
+@BUILD_PGM_FALSE@SUBDIRS = src doc perf tests tools
+@BUILD_PGM_TRUE@SUBDIRS = foreign/openpgm src doc perf tests tools
+DIST_SUBDIRS = foreign/openpgm src doc perf tests tools builds/msvc
 EXTRA_DIST = \
 	autogen.sh	\
 	version.sh	\

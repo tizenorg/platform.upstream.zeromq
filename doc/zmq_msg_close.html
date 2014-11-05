@@ -761,7 +761,8 @@ required and may be released. Actual release of resources associated with the
 message object shall be postponed by ØMQ until all users of the message or
 underlying data buffer have indicated it is no longer required.</p></div>
 <div class="paragraph"><p>Applications should ensure that <em>zmq_msg_close()</em> is called once a message is
-no longer required, otherwise memory leaks may occur.</p></div>
+no longer required, otherwise memory leaks may occur. Note that this is NOT
+necessary after a successful <em>zmq_msg_send()</em>.</p></div>
 <div class="admonitionblock">
 <table><tr>
 <td class="icon">
@@ -809,16 +810,16 @@ Invalid message.
 <div class="sect1">
 <h2 id="_authors">AUTHORS</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>This ØMQ manual page was written by Martin Sustrik &lt;<a href="mailto:sustrik@250bpm.com">sustrik@250bpm.com</a>&gt; and
-Martin Lucina &lt;<a href="mailto:mato@kotelna.sk">mato@kotelna.sk</a>&gt;.</p></div>
+<div class="paragraph"><p>This page was written by the ØMQ community. To make a change please
+read the ØMQ Contribution Policy at <a href="http://www.zeromq.org/docs:contributing">http://www.zeromq.org/docs:contributing</a>.</p></div>
 </div>
 </div>
 </div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-ØMQ 3.2.2<br />
-Last updated 2012-10-25 17:30:40 KST
+ØMQ 4.0.4<br />
+Last updated 2013-11-13 18:57:50 CET
 </div>
 </div>
 </body>

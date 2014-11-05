@@ -767,9 +767,10 @@ argument to be sent to the socket referenced by the <em>socket</em> argument.  T
 </dt>
 <dd>
 <p>
-Specifies that the operation should be performed in non-blocking mode. If the
-message cannot be queued on the <em>socket</em>, the <em>zmq_msg_send()</em> function shall
-fail with <em>errno</em> set to EAGAIN.
+For socket types (DEALER, PUSH) that block when there are no available peers
+(or all peers have full high-water mark), specifies that the operation should
+be performed in non-blocking mode. If the message cannot be queued on the
+<em>socket</em>, the <em>zmq_msg_send()</em> function shall fail with <em>errno</em> set to EAGAIN.
 </p>
 </dd>
 <dt class="hdlist1">
@@ -793,7 +794,8 @@ it using (e.g. using <em>zmq_msg_copy()</em>).</p></div>
 </td>
 <td class="content">A successful invocation of <em>zmq_msg_send()</em> does not indicate that the
 message has been transmitted to the network, only that it has been queued on
-the <em>socket</em> and ØMQ has assumed responsibility for the message.</td>
+the <em>socket</em> and ØMQ has assumed responsibility for the message. You do not need
+to call <em>zmq_msg_close()</em> after a successful <em>zmq_msg_send()</em>.</td>
 </tr></table>
 </div>
 <div class="sect2">
@@ -880,6 +882,14 @@ sent.
 Invalid message.
 </p>
 </dd>
+<dt class="hdlist1">
+<strong>EHOSTUNREACH</strong>
+</dt>
+<dd>
+<p>
+The message cannot be routed.
+</p>
+</dd>
 </dl></div>
 </div>
 </div>
@@ -923,16 +933,16 @@ rc = zmq_msg_send (&amp;part3, socket, 0);</tt></pre>
 <div class="sect1">
 <h2 id="_authors">AUTHORS</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>This ØMQ manual page was written by Martin Sustrik &lt;<a href="mailto:sustrik@250bpm.com">sustrik@250bpm.com</a>&gt; and
-Martin Lucina &lt;<a href="mailto:mato@kotelna.sk">mato@kotelna.sk</a>&gt;, and Pieter Hintjens &lt;<a href="mailto:ph@imatix.com">ph@imatix.com</a>&gt;.</p></div>
+<div class="paragraph"><p>This page was written by the ØMQ community. To make a change please
+read the ØMQ Contribution Policy at <a href="http://www.zeromq.org/docs:contributing">http://www.zeromq.org/docs:contributing</a>.</p></div>
 </div>
 </div>
 </div>
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-ØMQ 3.2.2<br />
-Last updated 2012-10-25 17:30:40 KST
+ØMQ 4.0.4<br />
+Last updated 2013-11-13 18:57:50 CET
 </div>
 </div>
 </body>

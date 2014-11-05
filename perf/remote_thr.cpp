@@ -1,7 +1,5 @@
 /*
-    Copyright (c) 2009-2011 250bpm s.r.o.
-    Copyright (c) 2007-2009 iMatix Corporation
-    Copyright (c) 2007-2011 Other contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2013 Contributors as noted in the AUTHORS file
 
     This file is part of 0MQ.
 
@@ -67,16 +65,11 @@ int main (int argc, char *argv [])
     }
 
     for (i = 0; i != message_count; i++) {
-
         rc = zmq_msg_init_size (&msg, message_size);
         if (rc != 0) {
             printf ("error in zmq_msg_init_size: %s\n", zmq_strerror (errno));
             return -1;
         }
-#if defined ZMQ_MAKE_VALGRIND_HAPPY
-        memset (zmq_msg_data (&msg), 0, message_size);
-#endif
-
         rc = zmq_sendmsg (s, &msg, 0);
         if (rc < 0) {
             printf ("error in zmq_sendmsg: %s\n", zmq_strerror (errno));

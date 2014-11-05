@@ -1,6 +1,5 @@
 /*
-    Copyright (c) 2010-2011 250bpm s.r.o.
-    Copyright (c) 2010-2011 Other contributors as noted in the AUTHORS file
+    Copyright (c) 2007-2013 Contributors as noted in the AUTHORS file
 
     This file is part of 0MQ.
 
@@ -81,12 +80,13 @@
 zmq::signaler_t::signaler_t ()
 {
     //  Create the socketpair for signaling.
-    int rc = make_fdpair (&r, &w);
-    errno_assert (rc == 0);
-
-    //  Set both fds to non-blocking mode.
-    unblock_socket (w);
-    unblock_socket (r);
+    if (make_fdpair (&r, &w) == 0) {
+        unblock_socket (w);
+        unblock_socket (r);
+    }
+#ifdef HAVE_FORK
+    pid = getpid();
+#endif
 }
 
 zmq::signaler_t::~signaler_t ()
@@ -95,7 +95,11 @@ zmq::signaler_t::~signaler_t ()
     int rc = close (r);
     errno_assert (rc == 0);
 #elif defined ZMQ_HAVE_WINDOWS
-    int rc = closesocket (w);
+    struct linger so_linger = { 1, 0 };
+    int rc = setsockopt (w, SOL_SOCKET, SO_LINGER,
+        (char *)&so_linger, sizeof (so_linger));
+    wsa_assert (rc != SOCKET_ERROR);
+    rc = closesocket (w);
     wsa_assert (rc != SOCKET_ERROR);
     rc = closesocket (r);
     wsa_assert (rc != SOCKET_ERROR);
@@ -114,6 +118,12 @@ zmq::fd_t zmq::signaler_t::get_fd ()
 
 void zmq::signaler_t::send ()
 {
+#if HAVE_FORK
+    if (unlikely(pid != getpid())) {
+        //printf("Child process %d signaler_t::send returning without sending #1\n", getpid());
+        return; // do not send anything in forked child context
+    }
+#endif
 #if defined ZMQ_HAVE_EVENTFD
     const uint64_t inc = 1;
     ssize_t sz = write (w, &inc, sizeof (inc));
@@ -129,6 +139,13 @@ void zmq::signaler_t::send ()
         ssize_t nbytes = ::send (w, &dummy, sizeof (dummy), 0);
         if (unlikely (nbytes == -1 && errno == EINTR))
             continue;
+#if HAVE_FORK
+        if (unlikely(pid != getpid())) {
+            //printf("Child process %d signaler_t::send returning without sending #2\n", getpid());
+            errno = EINTR;
+            break;
+        }
+#endif
         zmq_assert (nbytes == sizeof (dummy));
         break;
     }
@@ -137,6 +154,17 @@ void zmq::signaler_t::send ()
 
 int zmq::signaler_t::wait (int timeout_)
 {
+#ifdef HAVE_FORK
+    if (unlikely(pid != getpid()))
+    {
+        // we have forked and the file descriptor is closed. Emulate an interupt
+        // response.
+        //printf("Child process %d signaler_t::wait returning simulating interrupt #1\n", getpid());
+        errno = EINTR;
+        return -1;
+    }
+#endif
+
 #ifdef ZMQ_SIGNALER_WAIT_BASED_ON_POLL
 
     struct pollfd pfd;
@@ -147,10 +175,20 @@ int zmq::signaler_t::wait (int timeout_)
         errno_assert (errno == EINTR);
         return -1;
     }
-    else if (unlikely (rc == 0)) {
+    else
+    if (unlikely (rc == 0)) {
         errno = EAGAIN;
         return -1;
     }
+#ifdef HAVE_FORK
+    if (unlikely(pid != getpid())) {
+        // we have forked and the file descriptor is closed. Emulate an interupt
+        // response.
+        //printf("Child process %d signaler_t::wait returning simulating interrupt #2\n", getpid());
+        errno = EINTR;
+        return -1;
+    }
+#endif
     zmq_assert (rc == 1);
     zmq_assert (pfd.revents & POLLIN);
     return 0;
@@ -201,8 +239,8 @@ void zmq::signaler_t::recv ()
     //  one, return it back to the eventfd object.
     if (unlikely (dummy == 2)) {
         const uint64_t inc = 1;
-        ssize_t sz = write (w, &inc, sizeof (inc));
-        errno_assert (sz == sizeof (inc));
+        ssize_t sz2 = write (w, &inc, sizeof (inc));
+        errno_assert (sz2 == sizeof (inc));
         return;
     }
 
@@ -221,26 +259,45 @@ void zmq::signaler_t::recv ()
 #endif
 }
 
+#ifdef HAVE_FORK
+void zmq::signaler_t::forked()
+{
+    //  Close file descriptors created in the parent and create new pair
+    close (r);
+    close (w);
+    make_fdpair (&r, &w);
+}
+#endif
+
+//  Returns -1 if we could not make the socket pair successfully
 int zmq::signaler_t::make_fdpair (fd_t *r_, fd_t *w_)
 {
 #if defined ZMQ_HAVE_EVENTFD
-
-    // Create eventfd object.
     fd_t fd = eventfd (0, 0);
-    errno_assert (fd != -1);
-    *w_ = fd;
-    *r_ = fd;
-    return 0;
+    if (fd == -1) {
+        errno_assert (errno == ENFILE || errno == EMFILE);
+        *w_ = *r_ = -1;
+        return -1;
+    }
+    else {
+        *w_ = *r_ = fd;
+        return 0;
+    }
 
 #elif defined ZMQ_HAVE_WINDOWS
-    SECURITY_DESCRIPTOR sd = {0};
-    SECURITY_ATTRIBUTES sa = {0};
+#   if !defined _WIN32_WCE
+    // Windows CE does not manage security attributes
+    SECURITY_DESCRIPTOR sd;
+    SECURITY_ATTRIBUTES sa;
+    memset (&sd, 0, sizeof (sd));
+    memset (&sa, 0, sizeof (sa));
 
     InitializeSecurityDescriptor(&sd, SECURITY_DESCRIPTOR_REVISION);
     SetSecurityDescriptorDacl(&sd, TRUE, 0, FALSE);
 
     sa.nLength = sizeof(SECURITY_ATTRIBUTES);
     sa.lpSecurityDescriptor = &sd;
+#   endif
 
     //  This function has to be in a system-wide critical section so that
     //  two instances of the library don't accidentally create signaler
@@ -249,15 +306,16 @@ int zmq::signaler_t::make_fdpair (fd_t *r_, fd_t *w_)
     //  Note that if the event object already exists, the CreateEvent requests
     //  EVENT_ALL_ACCESS access right. If this fails, we try to open
     //  the event object asking for SYNCHRONIZE access only.
+#   if !defined _WIN32_WCE
     HANDLE sync = CreateEvent (&sa, FALSE, TRUE, TEXT ("Global\\zmq-signaler-port-sync"));
+#   else
+    HANDLE sync = CreateEvent (NULL, FALSE, TRUE, TEXT ("Global\\zmq-signaler-port-sync"));
+#   endif
     if (sync == NULL && GetLastError () == ERROR_ACCESS_DENIED)
-      sync = OpenEvent (SYNCHRONIZE | EVENT_MODIFY_STATE, FALSE, TEXT ("Global\\zmq-signaler-port-sync"));
+        sync = OpenEvent (SYNCHRONIZE | EVENT_MODIFY_STATE,
+                          FALSE, TEXT ("Global\\zmq-signaler-port-sync"));
 
     win_assert (sync != NULL);
-
-    //  Enter the critical section.
-    DWORD dwrc = WaitForSingleObject (sync, INFINITE);
-    zmq_assert (dwrc == WAIT_OBJECT_0);
 
     //  Windows has no 'socketpair' function. CreatePipe is no good as pipe
     //  handles cannot be polled on. Here we create the socketpair by hand.
@@ -279,53 +337,76 @@ int zmq::signaler_t::make_fdpair (fd_t *r_, fd_t *w_)
         (char *)&tcp_nodelay, sizeof (tcp_nodelay));
     wsa_assert (rc != SOCKET_ERROR);
 
-    //  Bind listening socket to any free local port.
+    //  Init sockaddr to signaler port.
     struct sockaddr_in addr;
     memset (&addr, 0, sizeof (addr));
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = htonl (INADDR_LOOPBACK);
     addr.sin_port = htons (signaler_port);
-    rc = bind (listener, (const struct sockaddr*) &addr, sizeof (addr));
-    wsa_assert (rc != SOCKET_ERROR);
-
-    //  Listen for incomming connections.
-    rc = listen (listener, 1);
-    wsa_assert (rc != SOCKET_ERROR);
 
     //  Create the writer socket.
-    *w_ = WSASocket (AF_INET, SOCK_STREAM, 0, NULL, 0,  0);
+    *w_ = open_socket (AF_INET, SOCK_STREAM, 0);
     wsa_assert (*w_ != INVALID_SOCKET);
-
-    //  On Windows, preventing sockets to be inherited by child processes.
-    BOOL brc = SetHandleInformation ((HANDLE) *w_, HANDLE_FLAG_INHERIT, 0);
-    win_assert (brc);
 
     //  Set TCP_NODELAY on writer socket.
     rc = setsockopt (*w_, IPPROTO_TCP, TCP_NODELAY,
         (char *)&tcp_nodelay, sizeof (tcp_nodelay));
     wsa_assert (rc != SOCKET_ERROR);
 
+    //  Enter the critical section.
+    DWORD dwrc = WaitForSingleObject (sync, INFINITE);
+    zmq_assert (dwrc == WAIT_OBJECT_0);
+
+    //  Bind listening socket to signaler port.
+    rc = bind (listener, (const struct sockaddr*) &addr, sizeof (addr));
+
+    //  Listen for incoming connections.
+    if (rc != SOCKET_ERROR)
+        rc = listen (listener, 1);
+
     //  Connect writer to the listener.
-    rc = connect (*w_, (struct sockaddr*) &addr, sizeof (addr));
-    wsa_assert (rc != SOCKET_ERROR);
+    if (rc != SOCKET_ERROR)
+        rc = connect (*w_, (struct sockaddr*) &addr, sizeof (addr));
 
     //  Accept connection from writer.
-    *r_ = accept (listener, NULL, NULL);
-    wsa_assert (*r_ != INVALID_SOCKET);
+    if (rc != SOCKET_ERROR)
+        *r_ = accept (listener, NULL, NULL);
 
-    //  On Windows, preventing sockets to be inherited by child processes.
-    brc = SetHandleInformation ((HANDLE) *r_, HANDLE_FLAG_INHERIT, 0);
-    win_assert (brc);
+    //  Save errno if error occurred in bind/listen/connect/accept.
+    int saved_errno = 0;
+    if (*r_ == INVALID_SOCKET)
+        saved_errno = WSAGetLastError ();
 
     //  We don't need the listening socket anymore. Close it.
-    rc = closesocket (listener);
-    wsa_assert (rc != SOCKET_ERROR);
+    closesocket (listener);
 
     //  Exit the critical section.
-    brc = SetEvent (sync);
+    BOOL brc = SetEvent (sync);
     win_assert (brc != 0);
 
-    return 0;
+    //  Release the kernel object
+    brc = CloseHandle (sync);
+    win_assert (brc != 0);
+
+    if (*r_ != INVALID_SOCKET) {
+#   if !defined _WIN32_WCE
+        //  On Windows, preventing sockets to be inherited by child processes.
+        brc = SetHandleInformation ((HANDLE) *r_, HANDLE_FLAG_INHERIT, 0);
+        win_assert (brc);
+#   endif
+        return 0;
+    }
+    else {
+        //  Cleanup writer if connection failed
+        if (*w_ != INVALID_SOCKET) {
+            rc = closesocket (*w_);
+            wsa_assert (rc != SOCKET_ERROR);
+            *w_ = INVALID_SOCKET;
+        }
+        //  Set errno from saved value
+        errno = wsa_error_to_errno (saved_errno);
+        return -1;
+    }
 
 #elif defined ZMQ_HAVE_OPENVMS
 
@@ -351,7 +432,7 @@ int zmq::signaler_t::make_fdpair (fd_t *r_, fd_t *w_)
     rc = setsockopt (listener, IPPROTO_TCP, TCP_NODELACK, &on, sizeof (on));
     errno_assert (rc != -1);
 
-    rc = bind(listener, (struct sockaddr*) &lcladdr, sizeof (lcladdr));
+    rc = bind (listener, (struct sockaddr*) &lcladdr, sizeof (lcladdr));
     errno_assert (rc != -1);
 
     socklen_t lcladdr_len = sizeof (lcladdr);
@@ -381,15 +462,20 @@ int zmq::signaler_t::make_fdpair (fd_t *r_, fd_t *w_)
 
     return 0;
 
-#else // All other implementations support socketpair()
-
+#else
+    // All other implementations support socketpair()
     int sv [2];
     int rc = socketpair (AF_UNIX, SOCK_STREAM, 0, sv);
-    errno_assert (rc == 0);
-    *w_ = sv [0];
-    *r_ = sv [1];
-    return 0;
-
+    if (rc == -1) {
+        errno_assert (errno == ENFILE || errno == EMFILE);
+        *w_ = *r_ = -1;
+        return -1;
+    }
+    else {
+        *w_ = sv [0];
+        *r_ = sv [1];
+        return 0;
+    }
 #endif
 }
 
